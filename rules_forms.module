@@ -51,9 +51,11 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
   if (isset($form_events[$form_id])) {
     rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
     $form['#after_build'][] = 'rules_forms_after_build';
+    $form['#validate'][] = 'rules_forms_event_validate';
+    $form['#submit'][] = 'rules_forms_event_submit';
   }
   // Display form ID message if enabled for this session.
-  if (!empty($_SESSION['rules_forms_message'])) {
+  if (!empty($_SESSION['rules_forms_message']) && !isset($form_events[$form_id])) {
     $link = l($form_id, RULES_ADMIN_FORMS_PATH .'/'. $form_id .'/activate/');
     $msg = t('Activate events for ');
     drupal_set_message($msg . $link, 'status', FALSE);
@@ -81,12 +83,7 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   if (empty($form_id)) {
     $form_id = $form['form_id']['#value'];
   }
-  $action_args = array(
-    'form' => &$form,
-    'form_state' => &$form_state,
-    'form_id' => $form_id,
-  );
-  rules_invoke_event($form_id .'_'. $event_type, $action_args);
+  rules_invoke_event($form_id .'_'. $event_type, $form, $form_state, $form_id);
 }
 
 /**
@@ -124,18 +121,6 @@ function rules_forms_after_build($form, &$form_state) {
   drupal_add_css(drupal_get_path('module', 'rules_forms') .'/rules_forms.css');
   if (!$form_state['submitted']) {
     return $form;
-  }
-  if (empty($form_state['submit_handlers'])) {
-    $form['#submit'][] = 'rules_forms_event_submit';
-  }
-  else {
-    $form_state['submit_handlers'][] = 'rules_forms_event_submit';
-  }
-  if (empty($form_state['validate_handlers'])) {
-    $form['#validate'][] = 'rules_forms_event_validate';
-  }
-  else {
-    $form_state['validate_handlers'][] = 'rules_forms_event_validate';
   }
   return $form;
 }

@@ -122,6 +122,7 @@ function &_rules_forms_get_element(&$form, $name) {
     if (substr($name, strlen($name)-1) === ']') {
       // remove trailing ']'
       $name = substr($name, 0, strlen($name)-1);
+      drupal_set_message($name);
     }
     $element = &$element[$name];
   }
