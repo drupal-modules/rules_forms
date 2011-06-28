@@ -1,0 +1,4 @@
+name = Rules Forms
+description = Provides developer support for creating form callbacks for Rules administration.
+core = 6.x
+dependencies[] = rules

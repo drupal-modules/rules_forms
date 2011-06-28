@@ -1,9 +1,0 @@
-<?php
-// $Id$
-
-/**
- * UserSearch module provides a simple search tool for
- * filtering users in user administration.
- *
- * @file
- */
