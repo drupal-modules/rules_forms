@@ -1,4 +1,5 @@
-name = Rules Forms
-description = Provides developer support for creating form callbacks for Rules administration.
-core = 6.x
+name = Rules Forms support
+description = Provides events, conditions and actions for rule-based form customization.
+core = 7.x
 dependencies[] = rules
+package = Rules
