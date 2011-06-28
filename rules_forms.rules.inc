@@ -13,7 +13,7 @@ function rules_forms_rules_file_info() {
 }
 
 /**
- * Implementation of hook_rules_event_info().
+ * Implements hook_rules_event_info().
  */
 function rules_forms_rules_event_info() {
   $form_events = variable_get('rules_forms_events', array());
@@ -46,15 +46,36 @@ function rules_forms_event_variables() {
     'form' => array('type' => 'form', 'label' => t('Form')),
     'form_state' => array('type' => 'form_state', 'label' => t('Form state')),
     'form_id' => array('type' => 'string', 'label' => t('Form ID')),
-  ) + rules_events_global_user_argument();
+  ) + rules_forms_events_global_user_variable();
 }
 
 /**
- * Implementation of hook_rules_condition_info().
+ * Returns the variable for the acting user from global $user.
+ */
+function rules_forms_events_global_user_variable() {
+  return array(
+    'user' => array(
+      'type' => 'user',
+      'label' => t('acting user'),
+      'handler' => 'rules_forms_variables_global_user',
+    ),
+  );
+}
+
+/**
+ * Returns the user account of the acting user.
+ */
+function rules_forms_variables_global_user() {
+  $uid = $GLOBALS['user']->uid;
+  return user_load($uid);
+}
+
+/**
+ * Implements hook_rules_condition_info().
  */
 function rules_forms_rules_condition_info() {
   $conditions = array();
-  $conditions['rules_forms_condition_element_value'] = array(
+  $conditions['element_value'] = array(
     'label' => t('Form element has value'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -71,15 +92,16 @@ function rules_forms_rules_condition_info() {
         'description' => t('Value(s) assigned to the form element. If the form element allows multiple values, enter one value per line.'),
       ),
     ),
-  ),
+    'base' => 'rules_forms_condition_element_value',
+  );
 }
 
 /**
- * Implementation of hook_rules_action_info().
+ * Implements hook_rules_action_info().
  */
 function rules_forms_rules_action_info() {
   $actions = array();
-  $actions['rules_forms_action_redirect'] = array(
+  $actions['redirect'] = array(
     'label' => t('Set the redirect target of the form'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -88,9 +110,10 @@ function rules_forms_rules_action_info() {
       'query' => array('type' => 'string', 'label' => t('Query')),
       'fragment' => array('type' => 'string', 'label' => t('Fragment')),
     ),
+    'base' => 'rules_forms_action_redirect',
     'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
   );
-  $actions['rules_forms_action_hide_element'] = array(
+  $actions['hide_element'] = array(
     'label' => t('Hide an element of the form'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -101,8 +124,9 @@ function rules_forms_rules_action_info() {
         'description' => t('The element that should not appear.') .' '. _rules_forms_element_description(),
       ),
     ),
+    'base' => 'rules_forms_action_hide_element',
   );
-  $actions['rules_forms_action_adjust_weight'] = array(
+  $actions['adjust_weight'] = array(
     'label' => t('Adjust weight of an element in the form'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -118,8 +142,9 @@ function rules_forms_rules_action_info() {
         'description' => t('Low numbers make the element bubble up, high numbers sink it down.'),
       ),
     ),
+    'base' => 'rules_forms_action_adjust_weight',
   );
-  $actions['rules_forms_action_prefix_suffix_html'] = array(
+  $actions['prefix_suffix_html'] = array(
     'label' => t('Insert HTML prefix/suffix code'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -140,8 +165,9 @@ function rules_forms_rules_action_info() {
         'description' => t('HTML inserted after.'),
       ),
     ),
+    'base' => 'rules_forms_action_prefix_suffix_html',
   );
-  $actions['rules_forms_action_set_error'] = array(
+  $actions['set_error'] = array(
     'label' => t('Set a form error'),
     'group' => 'Rules Forms',
     'parameter' => array(
@@ -157,22 +183,25 @@ function rules_forms_rules_action_info() {
         'description' => t('The message that should be displayed to the user.'),
       ),
     ),
+    'base' => 'rules_forms_action_set_error',
   );
-  $actions['rules_forms_action_set_element'] = array(
-  'label' => t('Set the default value of a form element'),
-  'group' => 'Rules Forms',
-  'parameter' => array(
-    'form' => array('type' => 'form', 'label' => t('Form')),
-    'element' => array(
-      'type' => 'string',
-      'label' => t('Form element ID'),
-      'description' => t('The element that should be targeted.') .' '. _rules_forms_element_description(),
+  $actions['set_element'] = array(
+    'label' => t('Set the default value of a form element'),
+    'group' => 'Rules Forms',
+    'parameter' => array(
+      'form' => array('type' => 'form', 'label' => t('Form')),
+      'element' => array(
+        'type' => 'string',
+        'label' => t('Form element ID'),
+        'description' => t('The element that should be targeted.') .' '. _rules_forms_element_description(),
+      ),
+      'value' => array(
+        'type' => 'string',
+        'label' => t('Default value'),
+        'description' => t('The value(s) that will be displayed as default. If the form element allows multiple values, enter one value per line.'),
+      ),
     ),
-    'value' => array(
-      'type' => 'string',
-      'label' => t('Default value'),
-      'description' => t('The value(s) that will be displayed as default. If the form element allows multiple values, enter one value per line.'),
-    ),
+    'base' => 'rules_forms_action_set_element',
   );
 }
 
@@ -181,7 +210,7 @@ function _rules_forms_element_description() {
 }
 
 /**
- * Implementation of hook_rules_data_type_info().
+ * Implements hook_rules_data_type_info().
  */
 function rules_forms_rules_data_info() {
   return array(

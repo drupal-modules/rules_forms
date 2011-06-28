@@ -8,7 +8,7 @@
 /**
  * Defines the forms events settings form
  */
-function rules_forms_admin_events(&$form_state) {
+function rules_forms_admin_events($form, &$form_state) {
   $form = array();
   $form['enable_form_activation_message'] = array(
     '#type' => 'checkbox',
@@ -83,7 +83,7 @@ function rules_forms_activate($form_id_activate) {
 /**
  * Confirmation form to activate events on a form.
  */
-function rules_forms_activate_form(&$form_state, $form_id_activate) {
+function rules_forms_activate_form($form, &$form_state, $form_id_activate) {
   $default_form_label = drupal_ucfirst(str_replace('_', ' ', $form_id_activate));
   $form = array(
     'form_id_label' => array(
