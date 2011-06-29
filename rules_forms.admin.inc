@@ -97,7 +97,7 @@ function rules_forms_activate_form($form, &$form_state, $form_id_activate) {
   $form_state['form_id_activate'] = $form_id_activate;
 
   $path = array();
-  $path['path'] = isset($_GET['destination']) ? $_GET['destination'] : RULES_ADMIN_FORMS_PATH;
+  $path['path'] = isset($_GET['destination']) ? $_GET['destination'] : RULES_FORMS_ADMIN_PATH;
 
   $title = t('Are you sure you want to activate events for %form?', array('%form' => $form_id_activate));
   $msg = t('Once the activation is confirmed, events on this form can be used to trigger rules.');
