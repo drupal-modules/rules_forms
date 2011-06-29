@@ -112,5 +112,5 @@ function rules_forms_activate_form_submit($form, &$form_state) {
   $form_events[$form_state['form_id_activate']] = $form_state['values']['form_id_label'];
   variable_set('rules_forms_events', $form_events);
   drupal_set_message(t("%form has been activated.", array('%form' => $form_state['form_id_activate'])));
-  $form_state['redirect'] = RULES_ADMIN_FORMS_PATH;
+  $form_state['redirect'] = RULES_FORMS_ADMIN_PATH;
 }

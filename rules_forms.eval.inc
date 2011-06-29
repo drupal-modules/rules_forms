@@ -6,38 +6,65 @@
  */
 
 /**
- * Action implementation: Set the redirect target.
+ * Condition: Check a form element value.
  */
-function rules_forms_action_redirect(&$form, $path, $query, $fragment) {
+function rules_forms_condition_element_value($form, $form_state, $element, $value) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  if (isset($form_element['#value'])) {
+    // Multiple values come in as array
+    if (is_array($form_element['#value'])) {
+      $lines = explode("\r\n", $value);
+      return rules_forms_equal_array_values($lines, $form_element['#value']);
+    }
+    return $form_element['#value'] === $value;
+  }
+  if (isset($form_element['#default_value'])) {
+    if (is_array($form_element['#default_value'])) {
+      $lines = explode("\r\n", $value);
+      return rules_forms_equal_array_values($lines, $form_element['#default_value']);
+    }
+    return $form_element['#default_value'] === $value;
+  }
+  return FALSE;
+}
+
+/**
+ * Returns TRUE if both arrays contain the same values, regardless of their keys
+ * and value ordering.
+ */
+function rules_forms_equal_array_values($array1, $array2) {
+  $diff1 = array_diff($array1, $array2);
+  $diff2 = array_diff($array2, $array1);
+  return empty($diff1) && empty($diff2);
+}
+
+/**
+ * Action: Set the redirect target.
+ */
+function rules_forms_action_redirect($form, $path, $query, $fragment) {
   $form['#redirect'] = array($path, $query, $fragment);
 }
 
 /**
- * Action implementation: Hide a form element.
+ * Action: Hide a form element.
  */
-function rules_forms_action_hide_element(&$form, $hide) {
+function rules_forms_action_hide_element($form, $hide) {
   $form_element = &_rules_forms_get_element($form, $hide);
   $form_element['#access'] = FALSE;
 }
 
 /**
- * Action implementation: Adjust weight of a form element.
+ * Action: Adjust weight of a form element.
  */
-function rules_forms_action_adjust_weight(&$form, $element, $weight) {
-  // CCK overrides weight settings in #content_extra_fields
-  if (isset($form['#content_extra_fields'][$element]['weight'])) {
-    $form['#content_extra_fields'][$element]['weight'] = $weight;
-  }
-  else {
-    $form_element = &_rules_forms_get_element($form, $element);
-    $form_element['#weight'] = $weight;
-  }
+function rules_forms_action_adjust_weight($form, $element, $weight) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#weight'] = $weight;
 }
 
 /**
- * Action implementation: Insert prefix/suffix HTML code.
+ * Action: Insert prefix/suffix HTML code.
  */
-function rules_forms_action_prefix_suffix_html(&$form, $element, $prefix, $suffix) {
+function rules_forms_action_prefix_suffix_html($form, $element, $prefix, $suffix) {
   if (empty($element)) {
     if (!empty($prefix)) {
       $form['#prefix'] = $prefix;
@@ -58,11 +85,11 @@ function rules_forms_action_prefix_suffix_html(&$form, $element, $prefix, $suffi
 }
 
 /**
- * Action implementation: set form error.
+ * Action: Set form error.
  */
-function rules_forms_action_set_error(&$form, $element, $message) {
+function rules_forms_action_set_error($form, $element, $message) {
   if (substr($element, strlen($element)-1) === ']') {
-    $form_element = _rules_forms_get_element($form, $element);
+    $form_element = &_rules_forms_get_element($form, $element);
     if (isset($form_element['#parents'])) {
       $element = implode('][', $form_element['#parents']);
     }
@@ -79,9 +106,9 @@ function rules_forms_action_set_error(&$form, $element, $message) {
 }
 
 /**
- * Action implementation: Set the default value.
+ * Action: Set the default value.
  */
-function rules_forms_action_set_element(&$form, $element, $value) {
+function rules_forms_action_set_element($form, $element, $value) {
   $form_element = &_rules_forms_get_element($form, $element);
   if (empty($form_element) || !array_key_exists('#default_value', $form_element)) {
     return;
@@ -122,42 +149,9 @@ function &_rules_forms_get_element(&$form, $name) {
     if (substr($name, strlen($name)-1) === ']') {
       // remove trailing ']'
       $name = substr($name, 0, strlen($name)-1);
-      drupal_set_message($name);
+      // drupal_set_message($name);
     }
-    $element = &$element[$name];
+    $element =& $element[$name];
   }
   return $element;
-}
-
-/**
- * Condition implementation: Check a form element value.
- */
-function rules_forms_condition_element_value($form, $form_state, $element, $value) {
-  $form_element = _rules_forms_get_element($form, $element);
-  if (isset($form_element['#value'])) {
-    // Multiple values come in as array
-    if (is_array($form_element['#value'])) {
-      $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $form_element['#value']);
-    }
-    return $form_element['#value'] === $value;
-  }
-  if (isset($form_element['#default_value'])) {
-    if (is_array($form_element['#default_value'])) {
-      $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $form_element['#default_value']);
-    }
-    return $form_element['#default_value'] === $value;
-  }
-  return FALSE;
-}
-
-/**
- * Returns TRUE if both arrays contain the same values, regardless of their keys
- * and value ordering.
- */
-function rules_forms_equal_array_values($array1, $array2) {
-  $diff1 = array_diff($array1, $array2);
-  $diff2 = array_diff($array2, $array1);
-  return empty($diff1) && empty($diff2);
 }

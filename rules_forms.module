@@ -5,15 +5,31 @@
  * Rules Forms provides events, conditions, and actions for site forms.
  */
 
-define('RULES_ADMIN_FORMS_PATH', 'admin/config/workflow/rules/forms');
+define('RULES_FORMS_ADMIN_PATH', 'admin/config/workflow/rules/forms');
 
 /**
  * Implements hook_help().
  */
 function rules_forms_help($path, $arg) {
-  if ($path === RULES_ADMIN_FORMS_PATH) {
+  if ($path === RULES_FORMS_ADMIN_PATH) {
     return '<p>'. t('Settings and overview of form events.') .'</p>';
   }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function rules_forms_permission() {
+  return array(
+    'administer rules forms rules' => array(
+      'title' => t('Administer Rules Forms events'),
+      'description' => t('Gives users access to create and edit Rules Forms rules.'),
+    ),
+    'administer rules forms' => array(
+      'title' => t('Administer Rules Forms'),
+      'description' => t('Grants access to Rules Forms settings and activating or deactivating rules for forms.'),
+    ),
+  );
 }
 
 /**
@@ -21,22 +37,22 @@ function rules_forms_help($path, $arg) {
  */
 function rules_forms_menu() {
   $items = array();
-  $items[RULES_ADMIN_FORMS_PATH] = array(
+  $items[RULES_FORMS_ADMIN_PATH] = array(
     'title' => 'Form events',
     'description' => 'Configure Rules forms events.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('rules_forms_admin_events'),
-    'access arguments' => array('administer rules'),
+    'access arguments' => array('administer rules', 'administer rules forms'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
     'file' => 'rules_forms.admin.inc',
   );
-  $items[RULES_ADMIN_FORMS_PATH .'/%/activate'] = array(
+  $items[RULES_FORMS_ADMIN_PATH .'/%/activate'] = array(
     'title' => 'Activate events for a form',
     'type' => MENU_CALLBACK,
     'page callback' => 'rules_forms_activate',
     'page arguments' => array(5),
-    'access arguments' => array('administer rules'),
+    'access arguments' => array('administer rules', 'administer rules forms'),
     'file' => 'rules_forms.admin.inc',
   );
   return $items;
@@ -47,47 +63,81 @@ function rules_forms_menu() {
  */
 function rules_forms_form_alter(&$form, &$form_state, $form_id) {
   $form_events = variable_get('rules_forms_events', array());
-  // Invoke event if form is enabled
+
   if (isset($form_events[$form_id])) {
+    // Set elements for form events.
     rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
     $form['#after_build'][] = 'rules_forms_after_build';
     $form['#validate'][] = 'rules_forms_event_validate';
     $form['#submit'][] = 'rules_forms_event_submit';
   }
+
   // Display form ID message if enabled for this session.
   if (!empty($_SESSION['rules_forms_message']) && !isset($form_events[$form_id])) {
-    $link = l($form_id, RULES_ADMIN_FORMS_PATH .'/'. $form_id .'/activate/');
+    $link = l($form_id, RULES_FORMS_ADMIN_PATH .'/'. $form_id .'/activate/');
     $msg = t('Activate events for ');
     drupal_set_message($msg . $link, 'status', FALSE);
   }
 }
 
 /**
- * Submit handler to invoke "form submitted" events
- */
-function rules_forms_event_submit(&$form, &$form_state) {
-  rules_forms_invoke_event('form_submit', $form, $form_state);
-}
-
-/**
  * Validation handler to invoke "form validate" events
+ *
+ * @see rules_forms_form_alter()
  */
 function rules_forms_event_validate(&$form, &$form_state) {
   rules_forms_invoke_event('form_validate', $form, $form_state);
 }
 
 /**
+ * Submit handler to invoke "form submitted" events
+ *
+ ** @see rules_forms_form_alter()
+ */
+function rules_forms_event_submit(&$form, &$form_state) {
+  rules_forms_invoke_event('form_submit', $form, $form_state);
+}
+
+/**
  * Invoke rules event of a certain type.
+ *
+ * @see rules_forms_event_validate()
+ * @see rules_forms_event_submit()
+ * @see rules_forms_form_alter()
  */
 function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = NULL) {
   if (empty($form_id)) {
     $form_id = $form['form_id']['#value'];
   }
-  rules_invoke_event($form_id .'_'. $event_type, $form, $form_state, $form_id);
+
+  // Prepare form data to be passed by reference as ArrayObjects.
+  $form_data = new ArrayObject((array)$form);
+  $form_state_data = new ArrayObject((array)$form_state);
+
+  // Invoke events with form arrays passed by reference.
+  rules_invoke_event($form_id .'_'. $event_type, $form_data, $form_state_data, $form_id);
+
+  // Repopulate form arrays to update the form.
+  $form = (array) $form_data;
+  $form_state = (array) $form_state_data;
+}
+
+/**
+ * Add element IDs on the form if the setting is enabled.
+ */
+function rules_forms_after_build($form, &$form_state) {
+  if (!empty($_SESSION['rules_forms_element_ids'])) {
+    rules_forms_add_element_id($form);
+  }
+  drupal_add_css(drupal_get_path('module', 'rules_forms') .'/rules_forms.css');
+  return $form;
 }
 
 /**
  * Add element IDs as prefix/suffix code to all form elements.
+ *
+ * @see rules_forms_after_build()
+ * @see rules_forms_form_alter()
  */
 function rules_forms_add_element_id(&$form, $parent = '') {
   $bracket = ($parent === '') ? '' : ']';
@@ -108,51 +158,4 @@ function rules_forms_add_element_id(&$form, $parent = '') {
     // recursive call on children
     rules_forms_add_element_id($form[$key], $parent . $key . $bracket .'[');
   }
-}
-
-/**
- * Add element IDs on the form if the setting is enabled. Add submit and
- * validation callbacks to form, buttons, etc. to invoke corresponding events.
- */
-function rules_forms_after_build($form, &$form_state) {
-  if (!empty($_SESSION['rules_forms_element_ids'])) {
-    rules_forms_add_element_id($form);
-  }
-  drupal_add_css(drupal_get_path('module', 'rules_forms') .'/rules_forms.css');
-  if (!$form_state['submitted']) {
-    return $form;
-  }
-  return $form;
-}
-
-/**
- * Implements hook_rules_import().
- * We need to activate the form event of the imported rule.
- */
-function rules_forms_rules_import($rule) {
-  $event = $rule['#set'];
-  // Check if it is a form-event-triggered rule
-  if (preg_match('/^event_(.)+_form_(built|submit|validate)$/', $event)) {
-    // Remove prefix/suffixes to get the form ID
-    $exploded = explode('_', $event);
-    $length = count($exploded);
-    unset($exploded[0], $exploded[$length-1], $exploded[$length-2]);
-    $form_id = implode('_', $exploded);
-    $form_events = variable_get('rules_forms_events', array());
-    // Activate event if it hasn't been activated yet.
-    if (!isset($form_events[$form_id])) {
-      $form_events[$form_id] = drupal_ucfirst(str_replace('_', ' ', $form_id));
-      variable_set('rules_forms_events', $form_events);
-    }
-  }
-}
-
-/**
- * Form after build handler to include *.rules.inc files that are needed for
- * other after build handlers. This is necessary because forms get cached and
- * required includes may not be available anymore.
- */
-function rules_forms_include_after_build($form, &$form_state) {
-  rules_include('rules');
-  return $form;
 }
