@@ -125,7 +125,7 @@ function rules_forms_rules_action_info() {
     'label' => t('Set the redirect target of the form'),
     'group' => 'Rules Forms',
     'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
+      'form_state' => array('type' => 'form_state', 'label' => t('Form state')),
       'path' => array('type' => 'text', 'label' => t('Path')),
       'query' => array('type' => 'text', 'label' => t('Query'), 'optional' => TRUE),
       'fragment' => array('type' => 'text', 'label' => t('Fragment'), 'optional' => TRUE),

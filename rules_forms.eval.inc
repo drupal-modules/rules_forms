@@ -41,8 +41,8 @@ function rules_forms_equal_array_values($array1, $array2) {
 /**
  * Action: Set the redirect target.
  */
-function rules_forms_action_redirect($form, $path, $query, $fragment) {
-  $form['#redirect'] = array($path, $query, $fragment);
+function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
+  $form_state['redirect'] = array($path, array('query' => array($query), 'fragment' => $fragment));
 }
 
 /**
