@@ -22,7 +22,7 @@ function rules_forms_help($path, $arg) {
 function rules_forms_permission() {
   return array(
     'administer rules forms rules' => array(
-      'title' => t('Administer Rules Forms events'),
+      'title' => t('Administer Rules Forms rules'),
       'description' => t('Gives users access to create and edit Rules Forms rules.'),
     ),
     'administer rules forms' => array(
@@ -71,9 +71,8 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
     $form['#validate'][] = 'rules_forms_event_validate';
     $form['#submit'][] = 'rules_forms_event_submit';
   }
-
-  // Display form ID message if enabled for this session.
-  if (!empty($_SESSION['rules_forms_message']) && !isset($form_events[$form_id])) {
+  elseif (!empty($_SESSION['rules_forms_message'])) {
+    // Display form ID message if enabled for this session.
     $link = l($form_id, RULES_FORMS_ADMIN_PATH .'/'. $form_id .'/activate/');
     $msg = t('Activate events for ');
     drupal_set_message($msg . $link, 'status', FALSE);
@@ -136,6 +135,12 @@ function rules_forms_after_build($form, &$form_state) {
 /**
  * Add element IDs as prefix/suffix code to all form elements.
  *
+ * @param &$form
+ *   The form array in which the element ID should be placed.
+ *   This argument is passed by reference.
+ * @param $parent
+ *   A specified parent used to build the elemend ID text.
+ *
  * @see rules_forms_after_build()
  * @see rules_forms_form_alter()
  */
@@ -155,7 +160,7 @@ function rules_forms_add_element_id(&$form, $parent = '') {
       $element_id = '<div class="rules_forms_element_id">'. t('Container element ID: %elem', array('%elem' => $parent . $key . $bracket)) .'</div>';
       $form[$key]['#prefix'] = isset($form[$key]['#suffix']) ? $form[$key]['#suffix'] . $element_id : $element_id;
     }
-    // recursive call on children
+    // Recursive call on children.
     rules_forms_add_element_id($form[$key], $parent . $key . $bracket .'[');
   }
 }

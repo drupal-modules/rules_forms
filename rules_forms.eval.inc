@@ -94,9 +94,9 @@ function rules_forms_action_set_error($form, $element, $message) {
       $element = implode('][', $form_element['#parents']);
     }
     else {
-      // remove trailing ']'
+      // Remove trailing ']'.
       $element = substr($element, 0, strlen($element)-1);
-      // insert ']' before the first '['
+      // Insert ']' before the first '['.
       $first_part = substr($element, 0, strpos($element, '['));
       $second_part = substr($element, strpos($element, '['));
       $element = $first_part .']'. $second_part;
@@ -114,28 +114,11 @@ function rules_forms_action_set_element($form, $element, $value) {
     return;
   }
   $lines = explode("\r\n", $value);
-  // Check if the form element is a CCK field
-  if (array_key_exists('#field_name', $form_element)) {
-    $default_value_key = $form_element['#columns'][0];
-    // Check if multiple default values are allowed
-    if (isset($form_element['#default_value'][0])) {
-      // Unset old default values
-      $form_element['#default_value'] = array();
-      foreach ($lines as $i => $line) {
-        $form_element['#default_value'][$i][$default_value_key] = $line;
-      }
-    }
-    else {
-      $form_element['#default_value'][$default_value_key] = $value;
-    }
+  if (count($lines) == 1) {
+    $form_element['#default_value'] = $value;
   }
   else {
-    if (count($lines) == 1) {
-      $form_element['#default_value'] = $value;
-    }
-    else {
-      $form_element['#default_value'] = $lines;
-    }
+    $form_element['#default_value'] = $lines;
   }
 }
 
@@ -147,9 +130,8 @@ function &_rules_forms_get_element(&$form, $name) {
   $element = &$form;
   foreach ($names as $name) {
     if (substr($name, strlen($name)-1) === ']') {
-      // remove trailing ']'
+      // Remove trailing ']'.
       $name = substr($name, 0, strlen($name)-1);
-      // drupal_set_message($name);
     }
     $element =& $element[$name];
   }

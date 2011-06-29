@@ -6,7 +6,7 @@
  */
 
 /**
- * Defines the forms events settings form
+ * Defines the forms events settings form.
  */
 function rules_forms_admin_events($form, &$form_state) {
   $form = array();
@@ -27,6 +27,7 @@ function rules_forms_admin_events($form, &$form_state) {
     '#value' => t('Save settings'),
     '#submit' => array('rules_forms_settings_submit'),
   );
+
   $form_events = variable_get('rules_forms_events', array());
   if (!empty($form_events)) {
     $form['form_events'] = array(

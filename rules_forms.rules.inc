@@ -247,6 +247,10 @@ function rules_forms_rules_action_info() {
   return $actions;
 }
 
+/**
+ * Provides a standard explanaition of how to use element IDs with
+ * conditions and actions.
+ */
 function _rules_forms_element_description() {
   return t('Examples on the "Create Article" form: "title" for the title field or "body[und][0][value]" for the body field.');
 }
