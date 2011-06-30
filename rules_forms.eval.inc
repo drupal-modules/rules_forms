@@ -46,14 +46,6 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
 }
 
 /**
- * Action: Hide a form element.
- */
-function rules_forms_action_hide_element($form, $hide) {
-  $form_element = &_rules_forms_get_element($form, $hide);
-  $form_element['#access'] = FALSE;
-}
-
-/**
  * Action: Adjust weight of a form element.
  */
 function rules_forms_action_adjust_weight($form, $element, $weight) {
@@ -65,22 +57,12 @@ function rules_forms_action_adjust_weight($form, $element, $weight) {
  * Action: Insert prefix/suffix HTML code.
  */
 function rules_forms_action_prefix_suffix_html($form, $element, $prefix, $suffix) {
-  if (empty($element)) {
-    if (!empty($prefix)) {
-      $form['#prefix'] = $prefix;
-    }
-    if (!empty($suffix)) {
-      $form['#suffix'] = $suffix;
-    }
+  $form_element = &_rules_forms_get_element($form, $element);
+  if (!empty($prefix)) {
+    $form_element['#prefix'] = $prefix;
   }
-  else {
-    $form_element = &_rules_forms_get_element($form, $element);
-    if (!empty($prefix)) {
-      $form_element['#prefix'] = $prefix;
-    }
-    if (!empty($suffix)) {
-      $form_element['#suffix'] = $suffix;
-    }
+  if (!empty($suffix)) {
+    $form_element['#suffix'] = $suffix;
   }
 }
 
@@ -88,19 +70,17 @@ function rules_forms_action_prefix_suffix_html($form, $element, $prefix, $suffix
  * Action: Set form error.
  */
 function rules_forms_action_set_error($form, $element, $message) {
-  if (substr($element, strlen($element)-1) === ']') {
-    $form_element = &_rules_forms_get_element($form, $element);
-    if (isset($form_element['#parents'])) {
-      $element = implode('][', $form_element['#parents']);
-    }
-    else {
-      // Remove trailing ']'.
-      $element = substr($element, 0, strlen($element)-1);
-      // Insert ']' before the first '['.
-      $first_part = substr($element, 0, strpos($element, '['));
-      $second_part = substr($element, strpos($element, '['));
-      $element = $first_part .']'. $second_part;
-    }
+  $form_element = &_rules_forms_get_element($form, $element);
+  if (isset($element['#parents'])) {
+    $element = implode('][', $form_element['#parents']);
+  }
+  else {
+    // Remove trailing ']'.
+    $element = substr($element, 0, strlen($element)-1);
+    // Insert ']' before the first '['.
+    $first_part = substr($element, 0, strpos($element, '['));
+    $second_part = substr($element, strpos($element, '['));
+    $form_element = $first_part .']'. $second_part;
   }
   form_set_error($element, $message);
 }
@@ -123,114 +103,97 @@ function rules_forms_action_set_element($form, $element, $value) {
 }
 
 /**
- * Action: Set form attributes.
+ * Action: Set text attributes of a form element.
  */
-function rules_forms_action_set_attributes($form, $element, $access, $description, $disabled, $required, $weight) {
-  $settings = array(
-    '#access' => $access,
-    '#description' => $description,
-    '#disabled' => $disabled,
-    '#required' => $required,
-    '#weight' => $weight,
-  );
-
+function rules_forms_action_set_text($form, $element, $title, $description, $default_value) {
   $form_element = &_rules_forms_get_element($form, $element);
-  foreach ($settings as $key => $value) {
-    $form_element[$key] = $settings[$key];
+  $attributes = _rules_forms_element_attributes();
+  foreach ($attributes as $key => $value) {
+    $attribute = '#'. $key;
+    // Empty attribute strings will be ignored.
+    if (!empty(${$key}) && ${$key} != $element[$attribute]) {
+      $form_element[$attribute] = ${$key};
+    }
   }
 }
 
 /**
- * Action: Add a form element.
+ * Action: Set form attributes.
+ */
+function rules_forms_action_set_access($form, $element, $access, $disabled, $required) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $attributes = _rules_forms_element_attributes();
+  foreach ($attributes as $key => $value) {
+    $attribute = '#'. $key;
+    // Since we're dealing with boolean values, we just check if the setting changed.
+    if (${$key} != $element[$attribute]) {
+      $form_element[$attribute] = ${$key};
+    }
+  }
+}
+
+/**
+ * Action: Set multiple value element options.
+ */
+function rules_forms_action_set_options($form, $element, $options) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#options'] = explode("\r\n", $options);
+}
+
+/**
+ * Action: Load a form element.
+ */
+function rules_forms_action_load_element($form, $element) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  if (!empty($form_element)) {
+    return array('element_fetched' => $element);
+  }
+}
+
+/**
+ * Validation callback for create element action.
+ */
+function rules_forms_action_create_element_validate($element) {
+  if (!isset($element->settings['type'])) {
+    throw new RulesException('Invalid element type specified.', array(), array($element, 'parameter', 'type'));
+  }
+}
+
+/**
+ * Action: Create a new form element.
  *
  * @param $form
  *   The form on which the element will be placed. This argument is passed
  *   as an ArrayObject, so we reference it.
  * @param $type
  *   The type of form element being created.
+ * @param $parent
+ *   A string identifying the parent element of the form element bring created.
  * @param $name
  *   The machine-readable name of a form element.
  * @param $title
  *   The '#title' attribute of the created form element.
- * @param $description
- *   The '#description' attribute of the created form element.
- * @param $required
- *   A boolean value representing whether the element should be required.
- * @paam $weight
- *   An integer to set as the weight of the form element.
- * @param $default
- *   A default value to set for the form element. For boolean value
- *   form elements, this should be a 1 or 0. For others it may be
- *   a string.
- * @param $options
- *   A string that will be converted into options, with one array item
- *   per line.
- * @param $multiple
- *   A boolean value representing whether the element allows multiple values.
- *   This generally applies only to 'select' type elements.
  */
-function rules_forms_action_add_element($form, $type, $parent, $name, $title, $description, $required, $weight, $default, $options, $multiple) {
+function rules_forms_action_create_element($form, $type, $parent, $name, $title) {
+  // Create the element by reference using the parent.
   if (!empty($parent)) {
+    $element_id = $parent .'['. $name .']';
     $parent_element = &_rules_forms_get_element($form, $parent);
-    $parent_element[$name] = rules_forms_element_attributes($type, $title, $description, $required, $weight, $default, $options, $multiple);
+    $parent_element[$name] = array('#type' => $type, '#title' => $title);
   }
+  // Create the element directly on the form.
   else {
-    $form[$name] = rules_forms_element_attributes($type, $title, $description, $required, $weight, $default, $options, $multiple);
+    $element_id = $name;
+    $form[$name] = array('#type' => $type, '#title' => $title);
   }
+
+  // Retrieve the element from the form.
+  $form_element = &_rules_forms_get_element($form, $element_id);
+  return array('element_created' => $element_id);
 }
 
 /**
- * Sets a form element's attributes.
- *
- * The attributes set in the action's settings are compared against a
- * definition of allowed attributes for the form element type. If the
- * attribute is allowed and has been set to something other than the
- * default then it will be set in the form element. For elements that
- * require an array of options, the options array is created from the
- * action input.
- *
- * @see rules_forms_action_add_element()
- * @see _rules_forms_element_attributes()
- */
-function rules_forms_element_attributes($type, $title, $description, $required, $weight, $default_value, $options, $multiple) {
-  $settings = _rules_forms_element_attributes();
-  $attributes = array();
-
-  // Create options and default value arrays for multiple option elements.
-  if ($settings[$type]['options'] == RULES_FORMS_REQUIRED) {
-    $options = explode("\r\n", $options);
-    if ($settings[$type]['multiple'] == RULES_FORMS_OPTIONAL && $multiple == TRUE) {
-      $default_value = explode("\r\n", $default_value);
-    }
-  }
-
-  // Loop through each attribute and set if necessary.
-  foreach ($settings[$type] as $key => $required) {
-    // Check if the attribute is allowed.
-    if ($required == RULES_FORMS_DISABLED) {
-      continue;
-    }
-    // If it is required then force it to be set.
-    elseif ($required == RULES_FORMS_REQUIRED) {
-      $attributes['#'. $key] = ${$key};
-    }
-    // If the attribute wasn't set in settings then don't set it here.
-    elseif (empty(${$key})) {
-      continue;
-    }
-    // The attribute was set in action settings.
-    else {
-      $attributes['#'. $key] = ${$key};
-    }
-  }
-
-  return $attributes;
-}
-
-/**
- * Defines attributes for specific form elements.
- *
- * @see rules_forms_element_attributes()
+ * Defines attributes importance for form elements.
  */
 function _rules_forms_element_attributes() {
   $defaults = array(
@@ -239,34 +202,7 @@ function _rules_forms_element_attributes() {
     'default_value' => RULES_FORMS_OPTIONAL,
     'description' => RULES_FORMS_OPTIONAL,
     'required' => RULES_FORMS_OPTIONAL,
-    'weight' => RULES_FORMS_OPTIONAL,
-  );
-
-  return array(
-    'textfield' => $defaults + array(
-      'options' => RULES_FORMS_DISABLED,
-      'multiple' => RULES_FORMS_DISABLED,
-    ),
-    'textarea' => $defaults + array(
-      'options' => RULES_FORMS_DISABLED,
-      'multiple' => RULES_FORMS_DISABLED,
-    ),
-    'checkbox' => $defaults + array(
-      'options' => RULES_FORMS_DISABLED,
-      'multiple' => RULES_FORMS_DISABLED,
-    ),
-    'checkboxes' => $defaults + array(
-      'options' => RULES_FORMS_REQUIRED,
-      'multiple' => RULES_FORMS_DISABLED,
-    ),
-    'select' => $defaults + array(
-      'options' => RULES_FORMS_REQUIRED,
-      'multiple' => RULES_FORMS_OPTIONAL,
-    ),
-    'radios' => $defaults + array(
-      'options' => RULES_FORMS_REQUIRED,
-      'multiple' => RULES_FORMS_DISABLED,
-    ),
+    'access' => RULES_FORMS_OPTIONAL,
   );
 }
 
