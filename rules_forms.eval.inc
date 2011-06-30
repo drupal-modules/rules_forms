@@ -11,7 +11,7 @@
 function rules_forms_condition_element_value($form, $form_state, $element, $value) {
   $form_element = &_rules_forms_get_element($form, $element);
   if (isset($form_element['#value'])) {
-    // Multiple values come in as array
+    // Multiple values come in as array.
     if (is_array($form_element['#value'])) {
       $lines = explode("\r\n", $value);
       return rules_forms_equal_array_values($lines, $form_element['#value']);
@@ -138,7 +138,6 @@ function rules_forms_action_set_attributes($form, $element, $access, $descriptio
   foreach ($settings as $key => $value) {
     $form_element[$key] = $settings[$key];
   }
-  print_r($form_element);
 }
 
 /**

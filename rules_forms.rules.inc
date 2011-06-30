@@ -258,13 +258,15 @@ function rules_forms_rules_action_info() {
         'description' => t('The element that should be targeted.') .' '. _rules_forms_element_description(),
       ),
       'access' => array(
-        'type' => 'text',
+        'type' => 'boolean',
         'label' => t('Access'),
+        'optional' => TRUE,
         'description' => t('Hides a form element.'),
       ),
       'description' => array(
         'type' => 'text',
         'label' => t('Description'),
+        'optional' => TRUE,
         'description' => t('The description of the form element.'),
       ),
       'disabled' => array(
@@ -277,11 +279,13 @@ function rules_forms_rules_action_info() {
       ),
       'weight' => array(
         'type' => 'integer',
+        'optional' => TRUE,
         'label' => t('Weight'),
       ),
     ),
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_set_attributes',
+    'help' => t('Note: All attributes will be applied to the form element.'),
   );
   return $actions;
 }
