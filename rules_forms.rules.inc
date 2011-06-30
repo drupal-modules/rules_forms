@@ -244,6 +244,45 @@ function rules_forms_rules_action_info() {
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_set_element',
   );
+  $actions['set_attributes'] = array(
+    'label' => t('Set multiple attributes of a form element'),
+    'group' => 'Rules Forms',
+    'parameter' => array(
+      'form' => array(
+        'type' => 'form',
+        'label' => t('Form'),
+      ),
+      'element' => array(
+        'type' => 'text',
+        'label' => t('Form element ID'),
+        'description' => t('The element that should be targeted.') .' '. _rules_forms_element_description(),
+      ),
+      'access' => array(
+        'type' => 'text',
+        'label' => t('Access'),
+        'description' => t('Hides a form element.'),
+      ),
+      'description' => array(
+        'type' => 'text',
+        'label' => t('Description'),
+        'description' => t('The description of the form element.'),
+      ),
+      'disabled' => array(
+        'type' => 'boolean',
+        'label' => t('Disabled'),
+      ),
+      'required' => array(
+        'type' => 'boolean',
+        'label' => t('Required'),
+      ),
+      'weight' => array(
+        'type' => 'integer',
+        'label' => t('Weight'),
+      ),
+    ),
+    'access callback' => 'rules_forms_integration_access',
+    'base' => 'rules_forms_action_set_attributes',
+  );
   return $actions;
 }
 

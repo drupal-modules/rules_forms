@@ -123,6 +123,25 @@ function rules_forms_action_set_element($form, $element, $value) {
 }
 
 /**
+ * Action: Set form attributes.
+ */
+function rules_forms_action_set_attributes($form, $element, $access, $description, $disabled, $required, $weight) {
+  $settings = array(
+    '#access' => $access,
+    '#description' => $description,
+    '#disabled' => $disabled,
+    '#required' => $required,
+    '#weight' => $weight,
+  );
+
+  $form_element = &_rules_forms_get_element($form, $element);
+  foreach ($settings as $key => $value) {
+    $form_element[$key] = $settings[$key];
+  }
+  print_r($form_element);
+}
+
+/**
  * Helper function to extract a reference to a form element by a given name.
  */
 function &_rules_forms_get_element(&$form, $name) {
