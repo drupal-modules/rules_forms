@@ -141,6 +141,136 @@ function rules_forms_action_set_attributes($form, $element, $access, $descriptio
 }
 
 /**
+ * Action: Add a form element.
+ *
+ * @param $form
+ *   The form on which the element will be placed. This argument is passed
+ *   as an ArrayObject, so we reference it.
+ * @param $type
+ *   The type of form element being created.
+ * @param $name
+ *   The machine-readable name of a form element.
+ * @param $title
+ *   The '#title' attribute of the created form element.
+ * @param $description
+ *   The '#description' attribute of the created form element.
+ * @param $required
+ *   A boolean value representing whether the element should be required.
+ * @paam $weight
+ *   An integer to set as the weight of the form element.
+ * @param $default
+ *   A default value to set for the form element. For boolean value
+ *   form elements, this should be a 1 or 0. For others it may be
+ *   a string.
+ * @param $options
+ *   A string that will be converted into options, with one array item
+ *   per line.
+ * @param $multiple
+ *   A boolean value representing whether the element allows multiple values.
+ *   This generally applies only to 'select' type elements.
+ */
+function rules_forms_action_add_element($form, $type, $parent, $name, $title, $description, $required, $weight, $default, $options, $multiple) {
+  if (!empty($parent)) {
+    $parent_element = &_rules_forms_get_element($form, $parent);
+    $parent_element[$name] = rules_forms_element_attributes($type, $title, $description, $required, $weight, $default, $options, $multiple);
+  }
+  else {
+    $form[$name] = rules_forms_element_attributes($type, $title, $description, $required, $weight, $default, $options, $multiple);
+  }
+}
+
+/**
+ * Sets a form element's attributes.
+ *
+ * The attributes set in the action's settings are compared against a
+ * definition of allowed attributes for the form element type. If the
+ * attribute is allowed and has been set to something other than the
+ * default then it will be set in the form element. For elements that
+ * require an array of options, the options array is created from the
+ * action input.
+ *
+ * @see rules_forms_action_add_element()
+ * @see _rules_forms_element_attributes()
+ */
+function rules_forms_element_attributes($type, $title, $description, $required, $weight, $default_value, $options, $multiple) {
+  $settings = _rules_forms_element_attributes();
+  $attributes = array();
+
+  // Create options and default value arrays for multiple option elements.
+  if ($settings[$type]['options'] == RULES_FORMS_REQUIRED) {
+    $options = explode("\r\n", $options);
+    if ($settings[$type]['multiple'] == RULES_FORMS_OPTIONAL && $multiple == TRUE) {
+      $default_value = explode("\r\n", $default_value);
+    }
+  }
+
+  // Loop through each attribute and set if necessary.
+  foreach ($settings[$type] as $key => $required) {
+    // Check if the attribute is allowed.
+    if ($required == RULES_FORMS_DISABLED) {
+      continue;
+    }
+    // If it is required then force it to be set.
+    elseif ($required == RULES_FORMS_REQUIRED) {
+      $attributes['#'. $key] = ${$key};
+    }
+    // If the attribute wasn't set in settings then don't set it here.
+    elseif (empty(${$key})) {
+      continue;
+    }
+    // The attribute was set in action settings.
+    else {
+      $attributes['#'. $key] = ${$key};
+    }
+  }
+
+  return $attributes;
+}
+
+/**
+ * Defines attributes for specific form elements.
+ *
+ * @see rules_forms_element_attributes()
+ */
+function _rules_forms_element_attributes() {
+  $defaults = array(
+    'type' => RULES_FORMS_REQUIRED,
+    'title' => RULES_FORMS_REQUIRED,
+    'default_value' => RULES_FORMS_OPTIONAL,
+    'description' => RULES_FORMS_OPTIONAL,
+    'required' => RULES_FORMS_OPTIONAL,
+    'weight' => RULES_FORMS_OPTIONAL,
+  );
+
+  return array(
+    'textfield' => $defaults + array(
+      'options' => RULES_FORMS_DISABLED,
+      'multiple' => RULES_FORMS_DISABLED,
+    ),
+    'textarea' => $defaults + array(
+      'options' => RULES_FORMS_DISABLED,
+      'multiple' => RULES_FORMS_DISABLED,
+    ),
+    'checkbox' => $defaults + array(
+      'options' => RULES_FORMS_DISABLED,
+      'multiple' => RULES_FORMS_DISABLED,
+    ),
+    'checkboxes' => $defaults + array(
+      'options' => RULES_FORMS_REQUIRED,
+      'multiple' => RULES_FORMS_DISABLED,
+    ),
+    'select' => $defaults + array(
+      'options' => RULES_FORMS_REQUIRED,
+      'multiple' => RULES_FORMS_OPTIONAL,
+    ),
+    'radios' => $defaults + array(
+      'options' => RULES_FORMS_REQUIRED,
+      'multiple' => RULES_FORMS_DISABLED,
+    ),
+  );
+}
+
+/**
  * Helper function to extract a reference to a form element by a given name.
  */
 function &_rules_forms_get_element(&$form, $name) {

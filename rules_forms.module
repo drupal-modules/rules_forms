@@ -6,6 +6,9 @@
  */
 
 define('RULES_FORMS_ADMIN_PATH', 'admin/config/workflow/rules/forms');
+define('RULES_FORMS_REQUIRED', 2);
+define('RULES_FORMS_OPTIONAL', 1);
+define('RULES_FORMS_DISABLED', 0);
 
 /**
  * Implements hook_help().

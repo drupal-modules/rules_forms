@@ -287,6 +287,87 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_attributes',
     'help' => t('Note: All attributes will be applied to the form element.'),
   );
+
+  $actions['add_element'] = array(
+    'label' => t('Add a new form element'),
+    'group' => 'Rules Forms',
+    'parameter' => array(
+      'form' => array(
+        'type' => 'form',
+        'label' => t('Form'),
+      ),
+      'type' => array(
+        'type' => 'text',
+        'label' => t('Element type'),
+        'options list' => '_rules_forms_element_options',
+        'description' => t('Select the type of element you would like to create.'),
+        'restriction' => 'input',
+      ),
+      'parent' => array(
+        'type' => 'text',
+        'label' => t('Parent element'),
+        'resctriction' => 'input',
+        'optional' => TRUE,
+        'description' => t('The parent element of the created form element (if any). The parent attribute should not be an input element.'),
+      ),
+      'name' => array(
+        'type' => 'text',
+        'label' => t('Element name'),
+        'restriction' => 'input',
+        'description' => t('The machine-readable name of the form element. Names may only include lower-case letters and underscores.'),
+      ),
+      'title' => array(
+        'type' => 'text',
+        'label' => t('Element title'),
+        'resctriction' => 'input',
+        'description' => t('The title of the form element which will be displayed next to it.')
+      ),
+      'description' => array(
+        'type' => 'text',
+        'label' => t('Description'),
+        'resctriction' => 'input',
+        'optional' => TRUE,
+        'description' => t('The description of the form element to be displayed on the form.'),
+      ),
+      'options' => array(
+        'type' => 'text',
+        'label' => t('Element options'),
+        'optional' => TRUE,
+        'description' => t('For form elements that allow multiple options, enter one option for each line. For form elements that do not have multple options this field will be ignored.'),
+      ),
+      'default_value' => array(
+        'type' => 'text',
+        'label' => t('Default value'),
+        'restriction' => 'input',
+        'optional' => TRUE,
+        'description' => t('The value(s) that will be displayed as default. If the form element allows multiple values, enter one value per line. For TRUE or FALSE type form elements, enter 1 for TRUE or 0 for FALSE.'),
+      ),
+      'multiple' => array(
+        'type' => 'boolean',
+        'label' => t('Allow multiple values'),
+        'optional' => TRUE,
+        'description' => t('This option applies to select lists only. Enable this option to enable multiple value selections.'),
+      ),
+      'required' => array(
+        'type' => 'boolean',
+        'label' => t('Required'),
+      ),
+      'weight' => array(
+        'type' => 'integer',
+        'label' => t('Weight'),
+        'optional' => TRUE,
+      ),
+    ),
+    'provides' => array(
+      'form_element' => array(
+        'type' => 'unknown',
+        'label' => t('Created form element'),
+      ),
+    ),
+    'access callback' => 'rules_forms_integration_access',
+    'base' => 'rules_forms_action_add_element',
+    'help' => t('This action does not execute PHP code by itself. To save form data, you will need to set up an execute PHP code action on form submit.'),
+  );
   return $actions;
 }
 
@@ -296,6 +377,20 @@ function rules_forms_rules_action_info() {
  */
 function _rules_forms_element_description() {
   return t('Examples on the "Create Article" form: "title" for the title field or "body[und][0][value]" for the body field.');
+}
+
+/**
+ * Provides actions for adding form elements.
+ */
+function _rules_forms_element_options() {
+  return array(
+    'textfield' => t('Text field'),
+    'textarea' => t('Text area'),
+    'checkbox' => t('Checkbox'),
+    'checkboxes' => t('Checkboxes'),
+    'select' => t('Select list'),
+    'radios' => t('Radios'),
+  );
 }
 
 /**
