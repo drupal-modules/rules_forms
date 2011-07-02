@@ -27,18 +27,12 @@ function rules_forms_rules_event_info() {
   foreach ($form_events as $form_id => $label) {
     $events[$form_id .'_form_built'] = $defaults + array(
       'label' => t('@form is being built', array('@form' => $label)),
-      'group' => 'Rules Forms',
-      'variables' => rules_forms_event_variables(),
     );
     $events[$form_id .'_form_submit'] = $defaults + array(
       'label' => t('@form is submitted', array('@form' => $label)),
-      'group' => 'Rules Forms',
-      'variables' => rules_forms_event_variables(),
     );
     $events[$form_id .'_form_validate'] = $defaults + array(
       'label' => t('@form is being validated', array('@form' => $label)),
-      'group' => 'Rules Forms',
-      'variables' => rules_forms_event_variables(),
     );
   }
   return $events;
@@ -78,8 +72,8 @@ function rules_forms_event_variables() {
  * @see rules_forms_event_variables()
  */
 function rules_forms_variables_global_user() {
-  $uid = $GLOBALS['user']->uid;
-  return user_load($uid);
+  global $user;
+  return $user;
 }
 
 /**
