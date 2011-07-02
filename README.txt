@@ -18,7 +18,8 @@
  ---------------
  This is a short usage guide to build Rules on you forms:
 
- * Go to the "Form events" page in the Rules administration menu (admin/rules/forms).
+ * Go to the "Form events" page in the Rules administration menu
+   (admin/config/workdlow/rules/forms).
  * Select the checkbox "Enable event activation messages on forms" and hit the "Save
    settings" button.
  * Go to the form on your site that you would like to customize with Rules, e.g.
