@@ -137,17 +137,19 @@ function rules_forms_action_prefix_suffix_html($form, $element, $prefix, $suffix
  * Action: Set form error.
  */
 function rules_forms_action_set_error($form, $element, $message) {
-  $form_element = &_rules_forms_get_element($form, $element);
-  if (isset($element['#parents'])) {
-    $element = implode('][', $form_element['#parents']);
-  }
-  else {
-    // Remove trailing ']'.
-    $element = substr($element, 0, strlen($element)-1);
-    // Insert ']' before the first '['.
-    $first_part = substr($element, 0, strpos($element, '['));
-    $second_part = substr($element, strpos($element, '['));
-    $form_element = $first_part .']'. $second_part;
+  if (substr($element, strlen($element)-1) === ']') {
+    $form_element = &_rules_forms_get_element($form, $element);
+    if (isset($form_element['#parents'])) {
+      $element = implode('][', $form_element['#parents']);
+    }
+    else {
+      // Remove trailing ']'.
+      $element = substr($element, 0, strlen($element)-1);
+      // Insert ']' before the first '['.
+      $first_part = substr($element, 0, strpos($element, '['));
+      $second_part = substr($element, strpos($element, '['));
+      $element = $first_part .']'. $second_part;
+    }
   }
   form_set_error($element, $message);
 }
@@ -157,7 +159,7 @@ function rules_forms_action_set_error($form, $element, $message) {
  */
 function rules_forms_action_set_element($form, $element, $value) {
   $form_element = &_rules_forms_get_element($form, $element);
-  if (empty($form_element) || !array_key_exists('#default_value', $form_element)) {
+  if (empty($form_element)) {
     return;
   }
   $lines = explode("\r\n", $value);

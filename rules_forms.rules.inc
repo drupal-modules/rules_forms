@@ -270,7 +270,7 @@ function rules_forms_rules_action_info() {
         'label' => t('Message'),
       ),
     ),
-    'base' => 'rules_forms_action_set_error',
+    'base' => 'rules_forms_action_set_element',
     'access callback' => 'rules_forms_integration_access',
   );
   $actions['redirect'] = array(
