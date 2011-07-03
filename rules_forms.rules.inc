@@ -186,6 +186,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('The element that should be targeted.'),
       ),
       'title' => array(
@@ -212,6 +213,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('The element that should be targeted.'),
       ),
       'access' => array(
@@ -241,6 +243,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('The element that should be targeted.'),
       ),
       'access' => array(
@@ -291,6 +294,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('The element that should be adjusted.'),
       ),
       'weight' => array(
@@ -310,6 +314,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('ID of the form element to be targeted.'),
       ),
       'prefix' => array(
@@ -334,6 +339,7 @@ function rules_forms_rules_action_info() {
       'element' => array(
         'type' => 'form_element',
         'label' => t('Form element'),
+        'restriction' => 'selector',
         'description' => t('The element that should be marked.'),
       ),
       'message' => array(
