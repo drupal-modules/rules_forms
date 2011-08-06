@@ -59,21 +59,9 @@ function rules_forms_event_variables() {
     ),
     'user' => array(
       'type' => 'user',
-      'label' => t('acting user'),
-      'handler' => 'rules_forms_variables_global_user',
+      'label' => t('Logged in user'),
     ),
   );
-}
-
-/**
- * Returns the user account of the acting user.
- *
- * @see rules_forms_rules_event_info()
- * @see rules_forms_event_variables()
- */
-function rules_forms_variables_global_user() {
-  global $user;
-  return $user;
 }
 
 /**
