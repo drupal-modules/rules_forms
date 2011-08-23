@@ -43,7 +43,7 @@ function rules_forms_admin_events($form, &$form_state) {
     );
   }
   else {
-    drupal_set_message('Enable the event activation messages below and go to the form you would like to activate events on.', 'status', FALSE);
+    drupal_set_message(t('Enable the event activation messages below and go to the form you would like to activate events on.'), 'status', FALSE);
   }
   return $form;
 }

@@ -75,7 +75,7 @@ function rules_forms_action_create_element_validate($element) {
 function rules_forms_action_create_element($form, $type, $parent, $name, $title) {
   // Create the element by reference using the parent.
   if (!empty($parent)) {
-    $element_id = $parent .'['. $name .']';
+    $element_id = $parent . '[' . $name . ']';
     $parent_element = &_rules_forms_get_element($form, $parent);
     $parent_element[$name] = array('#type' => $type, '#title' => $title);
   }
@@ -137,18 +137,18 @@ function rules_forms_action_prefix_suffix_html($form, $element, $prefix, $suffix
  * Action: Set form error.
  */
 function rules_forms_action_set_error($form, $element, $message) {
-  if (substr($element, strlen($element)-1) === ']') {
+  if (substr($element, strlen($element) - 1) === ']') {
     $form_element = &_rules_forms_get_element($form, $element);
     if (isset($form_element['#parents'])) {
       $element = implode('][', $form_element['#parents']);
     }
     else {
       // Remove trailing ']'.
-      $element = substr($element, 0, strlen($element)-1);
+      $element = substr($element, 0, strlen($element) - 1);
       // Insert ']' before the first '['.
       $first_part = substr($element, 0, strpos($element, '['));
       $second_part = substr($element, strpos($element, '['));
-      $element = $first_part .']'. $second_part;
+      $element = $first_part . ']' . $second_part;
     }
   }
   form_set_error($element, $message);
@@ -180,7 +180,7 @@ function rules_forms_action_set_text($form, $element, $title, $description) {
   foreach ($attributes as $key => $value) {
     // Empty attribute strings will be ignored.
     if (!empty(${$key})) {
-      $attribute = '#'. $key;
+      $attribute = '#' . $key;
       $form_element[$attribute] = ${$key};
     }
   }
@@ -196,7 +196,7 @@ function rules_forms_action_set_access($form, $element, $access, $disabled, $req
   $form_element = &_rules_forms_get_element($form, $element);
   $attributes = _rules_forms_element_attributes();
   foreach ($attributes as $key => $value) {
-    $attribute = '#'. $key;
+    $attribute = '#' . $key;
     // Since we're dealing with boolean values, we just check if the setting changed.
     if (isset(${$key})) {
       $form_element[$attribute] = ${$key};
@@ -219,9 +219,9 @@ function &_rules_forms_get_element(&$form, $name) {
   $names = explode('[', $name);
   $element = &$form;
   foreach ($names as $name) {
-    if (substr($name, strlen($name)-1) === ']') {
+    if (substr($name, strlen($name) - 1) === ']') {
       // Remove trailing ']'.
-      $name = substr($name, 0, strlen($name)-1);
+      $name = substr($name, 0, strlen($name) - 1);
     }
     $element =& $element[$name];
   }
