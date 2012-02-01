@@ -217,7 +217,7 @@ function rules_forms_rules_action_info() {
       'access' => array(
         'type' => 'text',
         'label' => t('Options'),
-        'description' => t('Enter one value per line.'),
+        'description' => t('<strong>Key-value pairs MUST be specified as "safe_key|Some readable option"</strong>. Use of only alphanumeric characters and underscores is recommended in keys. One option per line.'),
       ),
     ),
     'base' => 'rules_forms_action_set_options',

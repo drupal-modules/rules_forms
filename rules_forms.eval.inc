@@ -205,11 +205,68 @@ function rules_forms_action_set_access($form, $element, $access, $disabled, $req
 }
 
 /**
+ * Validation callback for set options action.
+ */
+function rules_forms_action_set_options_validate($element) {
+  // Check for duplicate key values to prevent unexpected data loss. Require
+  // all options to include a safe_key.
+  $lines = explode("\n", trim($element->settings['access']));
+  $existing_keys = array();
+  $duplicate_keys = array();
+  $missing_keys = array();
+  $long_keys = array();
+  $group = '';
+  
+  foreach ($lines as $line) {
+    $matches = array();
+    $line = trim($line);
+    if (preg_match('/^([^|]*)\|(.*)$/', $line, $matches)) {
+      $key = $matches[1];
+      if (strlen($key) > 128) {
+        $long_keys[] = $key;
+      }
+    }
+    else {
+      $missing_keys[] = $line;
+    }
+
+    if (isset($key)) {
+      if (isset($existing_keys[$group][$key])) {
+        $duplicate_keys[$key] = $key;
+      }
+      else {
+        $existing_keys[$group][$key] = $key;
+      }
+    }
+  }
+
+  if (!empty($missing_keys)) {
+    throw new RulesIntegrityException(t('Every option must have a key specified. Specify each option as "safe_key|Some readable option'), $element);
+  }
+
+  if (!empty($long_keys)) {
+    throw new RulesIntegrityException(t('Option keys must be less than 128 characters. The following keys exceed this limit:') . theme('item_list', $long_keys), $element);
+  }
+
+  if (!empty($duplicate_keys)) {
+    throw new RulesIntegrityException(t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)), $element);
+  }
+}
+
+/**
  * Action: Set multiple value element options.
  */
 function rules_forms_action_set_options($form, $element, $options) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#options'] = explode("\r\n", $options);
+  $processed_options = array();
+  $lines = explode("\r\n", trim($options));
+  foreach ($lines as $line) {
+    $line = trim($line);
+    if (preg_match('/^([^|]+)\|(.*)$/', $line, $matches)) {
+      $processed_options[$matches[1]] = $matches[2];
+    }
+  }
+  $form_element['#options'] = $processed_options;
 }
 
 /**
