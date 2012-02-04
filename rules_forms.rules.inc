@@ -9,30 +9,32 @@
  * Implements hook_rules_file_info().
  */
 function rules_forms_rules_file_info() {
-  return array('rules_forms.eval');
+  return array('includes/rules_forms.eval');
 }
 
 /**
  * Implements hook_rules_event_info().
  */
 function rules_forms_rules_event_info() {
-  $form_events = variable_get('rules_forms_events', array());
+  $form_events = variable_get('rules_forms_event_info', array());
   $defaults = array(
-    'group' => 'Rules Forms',
-    'variables' => rules_forms_event_variables(),
+    'group' => 'Rules forms',
     'access callback' => 'rules_forms_integration_access',
   );
 
   $events = array();
-  foreach ($form_events as $form_id => $label) {
+  foreach ($form_events as $form_id => $info) {
     $events['rules_forms_' . $form_id . '_form_built'] = $defaults + array(
-      'label' => t('@form is being built', array('@form' => $label)),
+      'label' => t('@form is being built', array('@form' => $info['label'])),
+      'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
     );
     $events['rules_forms_' . $form_id . '_form_submit'] = $defaults + array(
-      'label' => t('@form is submitted', array('@form' => $label)),
+      'label' => t('@form is submitted', array('@form' => $info['label'])),
+      'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
     );
     $events['rules_forms_' . $form_id . '_form_validate'] = $defaults + array(
-      'label' => t('@form is being validated', array('@form' => $label)),
+      'label' => t('@form is being validated', array('@form' => $info['label'])),
+      'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
     );
   }
   return $events;
@@ -65,6 +67,23 @@ function rules_forms_event_variables() {
 }
 
 /**
+ * Adds element variables for the form.
+ */
+function rules_forms_element_variables($form_id) {
+  $variables = array();
+  $events = variable_get('rules_forms_event_info', array());
+  if (isset($events[$form_id]['elements']) && is_array($events[$form_id]['elements'])) {
+    foreach ($events[$form_id]['elements'] as $key => $info) {
+      $variables[$key] = array(
+        'type' => 'form_element',
+        'label' => $info['label'],
+      );
+    }
+  }
+  return $variables;
+}
+
+/**
  * Implements hook_rules_condition_info().
  */
 function rules_forms_rules_condition_info() {
@@ -82,16 +101,14 @@ function rules_forms_rules_condition_info() {
         'label' => t('Form state'),
       ),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-          _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'value' => array(
         'type' => 'text',
         'label' => t('Value(s)'),
-        'description' => t('Value(s) assigned to the form element. If the form '.
-                           'element allows multiple values, enter one value per line.'),
+        'description' => t('Value(s) assigned to the form element. If the form element allows multiple values, enter one value per line.'),
       ),
     ),
     'access callback' => 'rules_forms_integration_access',
@@ -125,15 +142,13 @@ function rules_forms_rules_action_info() {
         'label' => t('Parent element'),
         'resctriction' => 'input',
         'optional' => TRUE,
-        'description' => t('The parent element of the created form element (if any). '.
-                           'The parent attribute should not be an input element.'),
+        'description' => t('The parent element of the created form element (if any). The parent attribute should not be an input element.'),
       ),
       'name' => array(
         'type' => 'text',
         'label' => t('Element name'),
         'restriction' => 'input',
-        'description' => t('The machine-readable name of the form element. Names '.
-                           'may only include lower-case letters and underscores.'),
+        'description' => t('The machine-readable name of the form element. Names may only include lower-case letters and underscores.'),
       ),
       'title' => array(
         'type' => 'text',
@@ -151,8 +166,7 @@ function rules_forms_rules_action_info() {
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_create_element',
     'validate' => 'rules_forms_create_element_validate',
-    'help' => t('To save form data from newly created form elements, you may '.
-                'have to set up an execute PHP code action on form submit.'),
+    'help' => t('To save form data from newly created form elements, you may have to set up an execute PHP code action on form submit.'),
   );
   $actions['rules_forms_text'] = array(
     'label' => t('Set element text attributes'),
@@ -160,10 +174,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-          _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'title' => array(
         'type' => 'text',
@@ -179,8 +192,7 @@ function rules_forms_rules_action_info() {
     ),
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_set_text',
-    'help' => t('Note: If a field is left empty, the empty text will '.
-                'not be applied to the form element.'),
+    'help' => t('Note: If a field is left empty, the empty text will not be applied to the form element.'),
   );
   $actions['rules_forms_access'] = array(
     'label' => t('Set element access attributes'),
@@ -188,10 +200,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'access' => array(
         'type' => 'boolean',
@@ -218,17 +229,14 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'access' => array(
         'type' => 'text',
         'label' => t('Options'),
-        'description' => t('<strong>Key-value pairs MUST be specified as '.
-            '"safe_key|Some readable option"</strong>. Use of only alphanumeric '.
-            'characters and underscores is recommended in keys. One option per line.'),
+        'description' => t('Enter one value per line.'),
       ),
     ),
     'base' => 'rules_forms_action_set_options',
@@ -241,10 +249,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'message' => array(
         'type' => 'text',
@@ -265,8 +272,7 @@ function rules_forms_rules_action_info() {
     ),
     'base' => 'rules_forms_action_redirect',
     'access callback' => 'rules_forms_integration_access',
-    'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. '.
-                'Enter (optional) queries after "?" and (optional) anchor after "#".'),
+    'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
   );
   $actions['rules_forms_adjust_weight'] = array(
     'label' => t('Adjust weight of an element in the form'),
@@ -274,10 +280,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'weight' => array(
         'type' => 'integer',
@@ -294,10 +299,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'prefix' => array(
         'type' => 'text',
@@ -319,10 +323,9 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
-        'type' => 'text',
-        'label' => t('Form element ID'),
-        'description' => t('ID of the form element to be targeted.') . ' ' .
-                           _rules_forms_element_description(),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
       ),
       'message' => array(
         'type' => 'text',
@@ -341,8 +344,7 @@ function rules_forms_rules_action_info() {
  * conditions and actions.
  */
 function _rules_forms_element_description() {
-  return t('Examples on the "Create Article" form: "title" for the title field '.
-           'or "body[und][0][value]" for the body field.');
+  return t('Examples on the "Create Article" form: "title" for the title field or "body[und][0][value]" for the body field.');
 }
 
 /**
@@ -371,6 +373,11 @@ function rules_forms_rules_data_info() {
     'form_state' => array(
       'label' => t('form state'),
       'group' => t('Rules forms'),
+    ),
+    'form_element' => array(
+      'label' => t('form element'),
+      'group' => 'Rules forms',
+      'ui class' => 'RulesFormsDataElement',
     ),
   );
 }

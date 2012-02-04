@@ -2,4 +2,5 @@ name = Rules Forms support
 description = Provides events, conditions and actions for rule-based form customization.
 core = 7.x
 dependencies[] = rules
+files[] = includes/rules_forms.ui.inc
 package = Rules

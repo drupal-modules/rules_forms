@@ -21,6 +21,12 @@ function rules_forms_install() {
  * Implements hook_uninstall().
  */
 function rules_forms_uninstall() {
+  variable_del('rules_forms_event_info');
+}
+
+/**
+ * Deletes the old variable. (For 7.x-2.x).
+ */
+function rules_forms_update_7200() {
   variable_del('rules_forms_events');
-  variable_del('rules_forms_help');
 }
