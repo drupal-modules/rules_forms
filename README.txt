@@ -51,7 +51,7 @@
    form element information in the Rules forms settings. See below for more details.
 
 
- Using the "Set element properties" action
+ Using the "Set element attribute" action
  -----------------------------------------
  This is a short usage guide to build actions with the "Set any property" action:
 
@@ -61,23 +61,21 @@
    "Display form element information".
  * Navigate back to Rules administration (admin/config/workflow/rules).
  * Create a rule using an event of one of your activated forms.
- * To use the "set any property" action, select "Add action" and choose the
-   "Set element properties" action under "Rules forms".
+ * To use the "set element attribute" action, select "Add action" and choose the
+   "Set element attribute" action under "Rules forms".
  * At the next form, select the desired form element from the drop-down list.
- * As a reference, you can navigate back to the form whose event you are using.
-   By mousing over or clicking the "i" information icon next to any element you
-   can view a list of element properties. The title of the popup list will show
-   Rules forms' name of that element.
  * Once a form element is selected, press "continue".
- * You will be provided a text area in which to enter element properties and values.
-   This field accepts tokens that represent properties to set. Also provided is a
-   token list of element properties that can be set.
- * To set a property, select the "Property" field and click the desired property
-   token in the token list. Alternatively, you can enter the token text directly.
- * To set the value of the property, enter an equals (=) sign after the element
-   property token followed by the desired value. For multiple value settings
-   separate values by a comma (,).
- * To set multiple properties, enter one property setting per line.
- * Example:
-   [element:title] = Example!
-   [element:options] = apples, bananas, oranges, pears
+ * On the next screen you will be able to access the element attributes list. This
+   list is filtered based on the type of element selected. Not all attributes
+   apply to all types of elements.
+ * To set an attribute, select an option from the "Attribute" list.
+ * To set the value of the selected attribute, use the guide atop the "Value" text
+   field as a reference. Different attributes may require specific types of values.
+   For multiple option lists, enter a key|value pair for each option, one on each
+   line. Boolean (TRUE or FALSE) values can be indicated by a 1 or 0 respectively.
+   For more information on form element attributes visit the Form API reference at:
+   http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7
+ * Example of multiple options:
+   apples|Apples
+   oranges|Oranges
+   raw_milk|Raw milk

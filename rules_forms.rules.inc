@@ -74,7 +74,7 @@ function rules_forms_element_variables($form_id) {
   $events = variable_get('rules_forms_event_info', array());
   if (isset($events[$form_id]['elements']) && is_array($events[$form_id]['elements'])) {
     foreach ($events[$form_id]['elements'] as $key => $info) {
-      $variables[$key] = array(
+      $variables[$info['type'] .':'. $key] = array(
         'type' => 'form_element',
         'label' => $info['label'],
       );
@@ -122,99 +122,6 @@ function rules_forms_rules_condition_info() {
  */
 function rules_forms_rules_action_info() {
   $actions = array();
-  $actions['rules_forms_text'] = array(
-    'label' => t('Set element text attributes'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'title' => array(
-        'type' => 'text',
-        'label' => t('Title'),
-        'optional' => TRUE,
-      ),
-      'description' => array(
-        'type' => 'text',
-        'label' => t('Description'),
-        'optional' => TRUE,
-        'description' => t('The description of the form element.'),
-      ),
-    ),
-    'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_set_text',
-    'help' => t('Note: If a field is left empty, the empty text will not be applied to the form element.'),
-  );
-  $actions['rules_forms_access'] = array(
-    'label' => t('Set element access attributes'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'access' => array(
-        'type' => 'boolean',
-        'label' => t('Access'),
-        'optional' => TRUE,
-        'description' => t('Hides a form element.'),
-      ),
-      'disabled' => array(
-        'type' => 'boolean',
-        'label' => t('Disabled'),
-      ),
-      'required' => array(
-        'type' => 'boolean',
-        'label' => t('Required'),
-      ),
-    ),
-    'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_set_access',
-    'help' => t('Note: All attributes will be applied to the form element.'),
-  );
-  $actions['rules_forms_options'] = array(
-    'label' => t('Set multiple value element options'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'access' => array(
-        'type' => 'text',
-        'label' => t('Options'),
-        'description' => t('Enter one value per line.'),
-      ),
-    ),
-    'base' => 'rules_forms_action_set_options',
-    'validate' => 'rules_forms_action_set_options_validate',
-    'access callback' => 'rules_forms_integration_access',
-  );
-  $actions['rules_forms_default'] = array(
-    'label' => t('Set the default value of a form element'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'message' => array(
-        'type' => 'text',
-        'label' => t('Message'),
-      ),
-    ),
-    'base' => 'rules_forms_action_set_element',
-    'access callback' => 'rules_forms_integration_access',
-  );
   $actions['rules_forms_redirect'] = array(
     'label' => t('Set the redirect target of the form'),
     'group' => 'Rules forms',
@@ -227,49 +134,6 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_redirect',
     'access callback' => 'rules_forms_integration_access',
     'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
-  );
-  $actions['rules_forms_adjust_weight'] = array(
-    'label' => t('Adjust weight of an element in the form'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'weight' => array(
-        'type' => 'integer',
-        'label' => t('Element weight'),
-        'description' => t('Low numbers make the element bubble up, high numbers sink it down.'),
-      ),
-    ),
-    'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_adjust_weight',
-  );
-  $actions['rules_forms_prefix_suffix_html'] = array(
-    'label' => t('Insert HTML prefix/suffix code'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array('type' => 'form', 'label' => t('Form')),
-      'element' => array(
-        'type' => 'form_element',
-        'label' => t('Form element'),
-        'description' => t('The form element to be targeted.'),
-      ),
-      'prefix' => array(
-        'type' => 'text',
-        'label' => t('Prefixed HTML'),
-        'description' => t('HTML inserted before.'),
-      ),
-      'suffix' => array(
-        'type' => 'text',
-        'label' => t('Suffixed HTML'),
-        'description' => t('HTML inserted after.'),
-      ),
-    ),
-    'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_prefix_suffix_html',
   );
   $actions['rules_forms_set_error'] = array(
     'label' => t('Set a form error'),
@@ -289,6 +153,44 @@ function rules_forms_rules_action_info() {
     ),
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_set_error',
+  );
+  $actions['rules_forms_set_attribute'] = array(
+    'label' => t('Set element attribute'),
+    'group' => 'Rules forms',
+    'parameter' => array(
+      'form' => array(
+        'type' => 'form',
+        'label' => t('Form'),
+        'restriction' => 'selector',
+      ),
+      'element' => array(
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'restriction' => 'input',
+        'description' => t('The form element to be targeted.'),
+      ),
+      'attribute' => array(
+        'type' => 'text',
+        'label' => t('Element attribute'),
+        'restriction' => 'input',
+        'options list' => '_rules_forms_attribute_options',
+        'description' => t('The element attribute to set.'),
+      ),
+      'value' => array(
+        'type' => 'text',
+        'label' => t('Value'),
+        'restriction' => 'input',
+        'description' => t('The attribute value. For boolean values enter 0 for FALSE and 1 for TRUE. ' .
+            'For multiple option values such has select lists, <strong>key-value pairs MUST be specified '.
+            'as "safe_key|Some readable option"</strong>. Use of only alphanumeric characters and underscores '.
+            'is recommended in keys. One option per line.'),
+      ),
+    ),
+    'callbacks' => array(
+      'access' => 'rules_forms_integration_access',
+      'form_alter' => 'rules_forms_action_attribute_form_alter',
+    ),
+    'base' => 'rules_forms_action_set_attribute',
   );
   return $actions;
 }
@@ -320,6 +222,101 @@ function rules_forms_rules_data_info() {
       'ui class' => 'RulesFormsDataElement',
     ),
   );
+}
+
+/**
+ * Alters the form for action: Set element property. Taken from Rules module.
+ */
+function rules_forms_action_attribute_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
+  $first_step = empty($element->settings['element']);
+  $form['reload'] = array(
+    '#weight' => 10,
+    '#type' => 'submit',
+    '#name' => 'reload',
+    '#value' => $first_step ? t('Continue') : t('Reload form'),
+    '#limit_validation_errors' => array(array('parameter', 'element')),
+    '#submit' => array('rules_action_type_form_submit_rebuild'),
+    '#ajax' => rules_ui_form_default_ajax(),
+  );
+
+  // Use ajax and trigger as the reload button.
+  $form['parameter']['type']['settings']['element']['#ajax'] = $form['reload']['#ajax'] + array(
+    'event' => 'change',
+    'trigger_as' => array('name' => 'reload'),
+  );
+
+  // Hide all form elements other than the element selector.
+  if ($first_step) {
+
+    // In the first step show only the type select.
+    foreach (element_children($form['parameter']) as $key) {
+      if ($key != 'element') {
+        unset($form['parameter'][$key]);
+      }
+    }
+
+    unset($form['submit']);
+    unset($form['provides']);
+  }
+  else {
+    // Hide the reload button in case js is enabled and it's not the first step.
+    $form['reload']['#attributes'] = array('class' => array('rules-hide-js'));
+  }
+}
+
+/**
+ * Provides attribute options for form elements.
+ *
+ * @param $element
+ *   The element to return options for.
+ * @param $param
+ *   The name of the parameter to return options for.
+ */
+function _rules_forms_attribute_options(RulesPlugin $element, $name) {
+  $options = array();
+  if (isset($element->settings['element'])) {
+    // Element types are prepended to keys in the element select list.
+    $type = array_shift(explode(':', $element->settings['element']));
+
+    // Add standard attributes.
+    $options = array(
+      '#access' => 'access',
+      '#attributes' => 'attributes',
+      '#prefix' => 'prefix',
+      '#suffix' => 'suffix',
+      '#weight' => 'weight',
+    );
+
+    // Add attributes common to input elements.
+    switch ($type) {
+      case 'textfield':
+      case 'textarea':
+      case 'select':
+      case 'radio':
+      case 'checkbox':
+      case 'checkboxes':
+        $options += array(
+          '#default_value' => 'default value',
+          '#description' => 'description',
+          '#disabled' => 'disabled',
+          '#required' => 'required',
+          '#tree' => 'tree',
+        );
+        break;
+    }
+
+    // Add attributes for multiple option fields.
+    if (in_array($type, array('select', 'checkbox', 'radios', 'checkboxes'))) {
+      $options += array('#options' => 'options');
+    }
+
+    if ($type == 'checkboxes') {
+      $options += array('#multiple' => 'multiple');
+    }
+
+    asort($options);
+  }
+  return $options;
 }
 
 /**
