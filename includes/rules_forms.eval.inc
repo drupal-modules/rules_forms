@@ -175,16 +175,12 @@ function rules_forms_action_set_attribute($form, $element_id, $attribute, $value
 /**
  * Helper function to extract a reference to a form element by a given name.
  */
-function &_rules_forms_get_element(&$form, $name) {
+function &_rules_forms_get_element(&$form, $element_id) {
   // Get the element key after the first colon.
-  $name = substr($name, strpos($name, ':') + 1);
-  $names = explode('[', $name);
+  $element_id = substr($element_id, strpos($element_id, ':') + 1);
+  $names = explode(':', $element_id);
   $element = &$form;
   foreach ($names as $name) {
-    if (substr($name, strlen($name) - 1) === ']') {
-      // Remove trailing ']'.
-      $name = substr($name, 0, strlen($name) - 1);
-    }
     $element =& $element[$name];
   }
   return $element;

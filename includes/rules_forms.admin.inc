@@ -10,13 +10,23 @@
  */
 function rules_forms_admin_events($form, &$form_state) {
   $form = array();
-  $form['enable_form_activation_message'] = array(
+  $form['general_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('General settings'),
+  );
+  $form['general_settings']['enable_form_activation_message'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable event activation messages on forms'),
     '#default_value' => isset($_SESSION['rules_forms_message']) ? $_SESSION['rules_forms_message'] : FALSE,
     '#description' => t('If checked, there will be a message on each form containing a link to activate events for the form. Only visible for your currently logged in user account.'),
   );
-  $form['settings_submit'] = array(
+  $form['general_settings']['enable_form_element_info'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display form element information'),
+    '#default_value' => isset($_SESSION['rules_forms_element_info']) ? $_SESSION['rules_forms_element_info'] : FALSE,
+    '#description' => t('If checked, the information about each form element will be displayed in popups on active forms. Only visible for your currently logged in user account.'),
+  );
+  $form['general_settings']['settings_submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save settings'),
     '#submit' => array('rules_forms_settings_submit'),
@@ -28,20 +38,24 @@ function rules_forms_admin_events($form, &$form_state) {
     foreach ($form_events as $form_id => $info) {
       $options[$form_id] = $info['label'];
     }
-    $form['form_events'] = array(
+    $form['active_forms'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Active forms'),
+    );
+    $form['active_forms']['form_events'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Forms where events are activated'),
       '#options' => $options,
       '#description' => t('Forms that currently invoke events. Select forms to deactivate events on them.'),
     );
-    $form['events_deactivate'] = array(
+    $form['active_forms']['events_deactivate'] = array(
       '#type' => 'submit',
       '#value' => t('Deactivate events'),
       '#submit' => array('rules_forms_events_deactivate_submit'),
     );
   }
   else {
-    drupal_set_message(t('Enable the event activation messages below and go to the form you would like to activate events on.'), 'status', FALSE);
+    drupal_set_message(t('To begin create form rules, enable the event activation messages below and navigate to the form you would like to activate events on.'), 'status', FALSE);
   }
   return $form;
 }
@@ -49,16 +63,17 @@ function rules_forms_admin_events($form, &$form_state) {
 /**
  * Submit handler to save settings.
  */
-function rules_forms_settings_submit($form_id, $form_values) {
-  $_SESSION['rules_forms_message'] = (bool) $form_values['values']['enable_form_activation_message'];
+function rules_forms_settings_submit($form_id, $form_state) {
+  $_SESSION['rules_forms_message'] = (bool) $form_state['values']['enable_form_activation_message'];
+  $_SESSION['rules_forms_element_info'] = (bool) $form_state['values']['enable_form_element_info'];
   drupal_set_message(t('The settings have been saved.'));
 }
 
 /**
  * Submit handler to deactivate form events.
  */
-function rules_forms_events_deactivate_submit($form_id, $form_values) {
-  $deactivate_events = array_filter($form_values['values']['form_events']);
+function rules_forms_events_deactivate_submit($form_id, $form_state) {
+  $deactivate_events = array_filter($form_state['values']['form_events']);
   $form_events = variable_get('rules_forms_event_info', array());
   foreach ($deactivate_events as $key => $value) {
     unset($form_events[$key]);

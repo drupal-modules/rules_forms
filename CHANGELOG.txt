@@ -7,3 +7,6 @@
 - #1209058 by jordojuice: New action to set any element attribute. This action replaced
   most of the previous actions which were categorized by type. It also makes the module
   significantly more flexible in the actions it can take on form elements.
+- #1261806 by jordojuice: Add a user interface to support the new action to set form
+  element attributes. This is an aid to help users determine what settings exist on
+  specific form elements via the interface.

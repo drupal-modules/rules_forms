@@ -69,6 +69,10 @@
    list is filtered based on the type of element selected. Not all attributes
    apply to all types of elements.
  * To set an attribute, select an option from the "Attribute" list.
+ * Note: As an additional aid you can enable the "Display form element information"
+   option on the Form Events settings page. This will enable a small icon near form
+   elements on activated forms that, when hovered over, will display information
+   about the current configuration of the given form element.
  * To set the value of the selected attribute, use the guide atop the "Value" text
    field as a reference. Different attributes may require specific types of values.
    For multiple option lists, enter a key|value pair for each option, one on each
