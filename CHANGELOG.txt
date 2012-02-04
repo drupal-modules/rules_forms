@@ -1,5 +1,6 @@
 -------------
  7.x-2.x-dev
 -------------
-- #1249694: Improve usability of element ID system. Added a method of
+- #1249694 patch by mrfelton: Improve usability of element ID system. Added a method of
   selecting form elements from within the Rules interface.
+- #1428020 by jordojuice: Remove the "Create a new form element" action.

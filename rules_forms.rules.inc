@@ -122,52 +122,6 @@ function rules_forms_rules_condition_info() {
  */
 function rules_forms_rules_action_info() {
   $actions = array();
-  $actions['rules_forms_add_element'] = array(
-    'label' => t('Create a new form element'),
-    'group' => 'Rules forms',
-    'parameter' => array(
-      'form' => array(
-        'type' => 'form',
-        'label' => t('Form'),
-      ),
-      'type' => array(
-        'type' => 'text',
-        'label' => t('Element type'),
-        'options list' => '_rules_forms_element_options',
-        'description' => t('Select the type of element you would like to create.'),
-        'restriction' => 'input',
-      ),
-      'parent' => array(
-        'type' => 'text',
-        'label' => t('Parent element'),
-        'resctriction' => 'input',
-        'optional' => TRUE,
-        'description' => t('The parent element of the created form element (if any). The parent attribute should not be an input element.'),
-      ),
-      'name' => array(
-        'type' => 'text',
-        'label' => t('Element name'),
-        'restriction' => 'input',
-        'description' => t('The machine-readable name of the form element. Names may only include lower-case letters and underscores.'),
-      ),
-      'title' => array(
-        'type' => 'text',
-        'label' => t('Element title'),
-        'restriction' => 'input',
-        'description' => t('The title attribute appears next to the element.'),
-      ),
-    ),
-    'provides' => array(
-      'element_created' => array(
-        'type' => 'form_element',
-        'label' => t('Created form element'),
-      ),
-    ),
-    'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_create_element',
-    'validate' => 'rules_forms_create_element_validate',
-    'help' => t('To save form data from newly created form elements, you may have to set up an execute PHP code action on form submit.'),
-  );
   $actions['rules_forms_text'] = array(
     'label' => t('Set element text attributes'),
     'group' => 'Rules forms',
@@ -345,20 +299,6 @@ function rules_forms_rules_action_info() {
  */
 function _rules_forms_element_description() {
   return t('Examples on the "Create Article" form: "title" for the title field or "body[und][0][value]" for the body field.');
-}
-
-/**
- * Provides actions for adding form elements.
- */
-function _rules_forms_element_options() {
-  return array(
-    'textfield' => t('Text field'),
-    'textarea' => t('Text area'),
-    'checkbox' => t('Checkbox'),
-    'checkboxes' => t('Checkboxes'),
-    'select' => t('Select list'),
-    'radios' => t('Radios'),
-  );
 }
 
 /**
