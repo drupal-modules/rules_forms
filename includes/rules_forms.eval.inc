@@ -201,7 +201,7 @@ function rules_forms_action_set_options_validate($element) {
  * Note: For multiple option values each key value pair is on its own line
  * and formatted key|value.
  */
-function rules_forms_action_set_options($form, $element_id, $attribute, $value) {
+function rules_forms_action_set_options($form, $element_id, $value) {
   $form_element = &_rules_forms_get_element($form, $element_id);
   $lines = explode("\r\n", trim($value));
 

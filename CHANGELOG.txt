@@ -12,3 +12,4 @@
 - #1429072: Backport changes to 1.x.
 - #1429090: Redirect user to activated form upon intial activation of form events.
   Also cleaned up the interface of the set weight action.
+- #1429108: Fixed invalid argument being passed to the Set multiple options action.
