@@ -1,0 +1,12 @@
+-------------
+ 7.x-1.x-dev
+-------------
+- #1383188 patch by mrfelton: Improvements for the "Set multiple value element options"
+  action. Added a method for setting key|value pairs.
+- #1249694 by jordojuice: Improve usability of element ID system. Added a method of
+  selecting form elements from within the Rules interface.
+- #1428020 by jordojuice: Remove the "Create a new form element" action.
+- #1261806 by jordojuice: Add a user interface to support the new interface for form
+  element attributes. This is an aid to help users determine what settings exist on
+  specific form elements via the interface and to identify form elements.
+- #1429072: Backport changes to 1.x.
