@@ -197,10 +197,11 @@ function rules_forms_build_elements($form, &$elements, $parent = '') {
   foreach (element_children($form) as $key) {
     // Only save element that have a title or value and are not hidden or tokens.
     if (isset($form[$key]['#type']) && (isset($form[$key]['#title']) || isset($form[$key]['#value']))
-        && $form[$key]['#type'] !== 'hidden' && $form[$key]['#type'] !== 'token') {
+        && !in_array($form[$key]['#type'], array('hidden', 'token')) // Exclude hidden and token elements.
+        && !in_array($key, array('uid', 'created', 'language', isset($form['language']) ? $form['language'] : 'und'))) {
       $elements[$form[$key]['#type'] .':'. $parent . $key] = array(
         'type' => $form[$key]['#type'],
-        'label' => isset($form[$key]['#title']) ? $form[$key]['#title'] : $form[$key]['#value'],
+        'label' => isset($form[$key]['#title']) ? ucfirst($form[$key]['#title']) : (is_numeric($form[$key]['#value']) ? ucfirst(str_replace('_', ' ', $key)) : $form[$key]['#value']),
       );
     }
     // Recursive call on children.

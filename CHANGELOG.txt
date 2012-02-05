@@ -1,5 +1,5 @@
 -------------
- 7.x-1.x-dev
+ 7.x-1.x-beta7
 -------------
 - #1383188 patch by mrfelton: Improvements for the "Set multiple value element options"
   action. Added a method for setting key|value pairs.
