@@ -91,21 +91,6 @@ function rules_forms_action_create_element($form, $type, $parent, $name, $title)
 }
 
 /**
- * Defines attributes importance for form elements.
- */
-function _rules_forms_element_attributes() {
-  return array(
-    'type' => RULES_FORMS_REQUIRED,
-    'title' => RULES_FORMS_REQUIRED,
-    'default_value' => RULES_FORMS_OPTIONAL,
-    'description' => RULES_FORMS_OPTIONAL,
-    'disabled' => RULES_FORMS_OPTIONAL,
-    'required' => RULES_FORMS_OPTIONAL,
-    'access' => RULES_FORMS_OPTIONAL,
-  );
-}
-
-/**
  * Action: Set the redirect target.
  */
 function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
@@ -176,14 +161,8 @@ function rules_forms_action_set_element($form, $element, $value) {
  */
 function rules_forms_action_set_text($form, $element, $title, $description) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $attributes = _rules_forms_element_attributes();
-  foreach ($attributes as $key => $value) {
-    // Empty attribute strings will be ignored.
-    if (!empty(${$key})) {
-      $attribute = '#' . $key;
-      $form_element[$attribute] = ${$key};
-    }
-  }
+  $form_element['#title'] = $title;
+  $form_element['#description'] = $description;
 }
 
 /**
@@ -194,14 +173,9 @@ function rules_forms_action_set_access($form, $element, $access, $disabled, $req
   // Set the '#access' attribute based on whether to *hide* the form element or not.
   $access = $access == 0;
   $form_element = &_rules_forms_get_element($form, $element);
-  $attributes = _rules_forms_element_attributes();
-  foreach ($attributes as $key => $value) {
-    $attribute = '#' . $key;
-    // Since we're dealing with boolean values, we just check if the setting changed.
-    if (isset(${$key})) {
-      $form_element[$attribute] = ${$key};
-    }
-  }
+  $form_element['#access'] = $access;
+  $form_element['#disabled'] = $disabled;
+  $form_element['#required'] = $required;
 }
 
 /**
