@@ -118,7 +118,7 @@ function rules_forms_action_set_prefix_suffix_html($form, $element, $prefix, $su
  */
 function rules_forms_action_set_weight($form, $element, $weight) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#weight'] = $weight;
+  $form_element['#weight'] = (integer) $weight;
 }
 
 /**

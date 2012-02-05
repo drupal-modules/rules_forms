@@ -10,3 +10,5 @@
   element attributes. This is an aid to help users determine what settings exist on
   specific form elements via the interface and to identify form elements.
 - #1429072: Backport changes to 1.x.
+- #1429090: Redirect user to activated form upon intial activation of form events.
+  Also cleaned up the interface of the set weight action.

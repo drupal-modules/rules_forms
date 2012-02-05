@@ -306,6 +306,7 @@ function rules_forms_rules_action_info() {
       'weight' => array(
         'type' => 'integer',
         'label' => t('Element weight'),
+        'options list' => '_rules_forms_weight_options',
         'description' => t('Low numbers make the element bubble up, high numbers sink it down.'),
       ),
     ),
@@ -377,6 +378,17 @@ function rules_forms_rules_action_info() {
     'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
   );
   return $actions;
+}
+
+/**
+ * Provides numeric options for setting the weight of a form element.
+ */
+function _rules_forms_weight_options() {
+  $options = array();
+  for ($i = -20; $i < 21; $i++) {
+    $options[(string) $i] = $i;
+  }
+  return $options;
 }
 
 /**

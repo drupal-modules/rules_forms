@@ -90,30 +90,36 @@ function rules_forms_events_deactivate_submit($form_id, $form_state) {
 
 /**
  * Activation page for a form ID.
+ * @param $form_id_activate
+ *   The form ID of the form to be activated.
+ * @param $form_page
+ *   The encoded URI of the page on which the form was activated. This is used for
+ *   redirecting the user back to that page once activation is completed.
  */
-function rules_forms_activate($form_id_activate) {
+function rules_forms_activate($form_id_activate, $form_page) {
   $form_events = variable_get('rules_forms_event_info', array());
   if (isset($form_events[$form_id_activate])) {
     return t('Events for %form_id have already been activated.', array('%form_id' => $form_id_activate));
   }
-  return drupal_get_form('rules_forms_activate_form', $form_id_activate);
+  return drupal_get_form('rules_forms_activate_form', $form_id_activate, $form_page);
 }
 
 /**
  * Confirmation form to activate events on a form.
  */
-function rules_forms_activate_form($form, &$form_state, $form_id_activate) {
+function rules_forms_activate_form($form, &$form_state, $form_id_activate, $form_page) {
   $default_form_label = drupal_ucfirst(str_replace('_', ' ', $form_id_activate));
   $form = array(
     'form_id_label' => array(
-        '#type' => 'textfield',
-        '#title' => t('Custom form label'),
-        '#default_value' => $default_form_label,
-        '#required' => TRUE,
-        '#description' => t('Enter a custom label to better recognize the form in the administration user interface.'),
+      '#type' => 'textfield',
+      '#title' => t('Custom form label'),
+      '#default_value' => $default_form_label,
+      '#required' => TRUE,
+      '#description' => t('Enter a custom label for use in the administration user interface.'),
     ),
   );
   $form_state['form_id_activate'] = $form_id_activate;
+  $form_state['form_page'] = $form_page;
 
   $path = array();
   $path['path'] = isset($_GET['destination']) ? $_GET['destination'] : RULES_FORMS_ADMIN_PATH;
@@ -132,8 +138,13 @@ function rules_forms_activate_form_submit($form, &$form_state) {
     'label' => $form_state['values']['form_id_label'],
     'elements' => array(),
   );
+
+  // Save the form information and force Rules to rebuild its cache.
   variable_set('rules_forms_event_info', $form_events);
   rules_clear_cache();
   drupal_set_message(t("%form has been activated.", array('%form' => $form_state['form_id_activate'])));
-  $form_state['redirect'] = RULES_FORMS_ADMIN_PATH;
+
+  // Redirect the user back to the form that was activated.
+  $form_page = urldecode($form_state['form_page']);
+  $form_state['redirect'] = $form_page;
 }
