@@ -39,58 +39,6 @@ function rules_forms_equal_array_values($array1, $array2) {
 }
 
 /**
- * Action: Load a form element.
- */
-function rules_forms_action_load_element($form, $element) {
-  $form_element = &_rules_forms_get_element($form, $element);
-  if (!empty($form_element)) {
-    return array('element_fetched' => $element);
-  }
-}
-
-/**
- * Validation callback for create element action.
- */
-function rules_forms_action_create_element_validate($element) {
-  if (!isset($element->settings['type'])) {
-    throw new RulesException('Invalid element type specified.', array(), array($element, 'parameter', 'type'));
-  }
-}
-
-/**
- * Action: Create a new form element.
- *
- * @param $form
- *   The form on which the element will be placed. This argument is passed
- *   as an ArrayObject, so we reference it.
- * @param $type
- *   The type of form element being created.
- * @param $parent
- *   A string identifying the parent element of the form element bring created.
- * @param $name
- *   The machine-readable name of a form element.
- * @param $title
- *   The '#title' attribute of the created form element.
- */
-function rules_forms_action_create_element($form, $type, $parent, $name, $title) {
-  // Create the element by reference using the parent.
-  if (!empty($parent)) {
-    $element_id = $parent . '[' . $name . ']';
-    $parent_element = &_rules_forms_get_element($form, $parent);
-    $parent_element[$name] = array('#type' => $type, '#title' => $title);
-  }
-  // Create the element directly on the form.
-  else {
-    $element_id = $name;
-    $form[$name] = array('#type' => $type, '#title' => $title);
-  }
-
-  // Retrieve the element from the form.
-  $form_element = &_rules_forms_get_element($form, $element_id);
-  return array('element_created' => $element_id);
-}
-
-/**
  * Action: Set the redirect target.
  */
 function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
