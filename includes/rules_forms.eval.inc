@@ -46,7 +46,18 @@ function rules_forms_equal_array_values($array1, $array2) {
  * Action: Set the redirect target.
  */
 function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
-  $form_state['redirect'] = array($path, array('query' => array($query), 'fragment' => $fragment));
+  // We manually check the form to see if redirect is okay.
+  // Setting $form_state['redirect'] has proven to be unreliable.
+  if (!empty($form_state['programmed']) || !empty($form_state['rebuild']) || !empty($form_state['no_redirect'])) {
+    return;
+  }
+
+  // Check if a query was defined and build the options array.
+  $options = $query != '' ? array('query' => array($query)) : array();
+  $options['fragment'] = $fragment;
+
+  // Redirect the user.
+  drupal_goto($path, $options);
 }
 
 /**
