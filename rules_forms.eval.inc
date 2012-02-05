@@ -105,25 +105,43 @@ function rules_forms_action_set_element($form, $element, $value) {
 }
 
 /**
- * Action: Set text attributes of a form element.
+ * Action: Set element title.
  */
-function rules_forms_action_set_text($form, $element, $title, $description) {
+function rules_forms_action_set_title($form, $element, $title) {
   $form_element = &_rules_forms_get_element($form, $element);
   $form_element['#title'] = $title;
+}
+
+/**
+ * Action: Set element description.
+ */
+function rules_forms_action_set_description($form, $element, $description) {
+  $form_element = &_rules_forms_get_element($form, $element);
   $form_element['#description'] = $description;
 }
 
 /**
- * Action: Set form attributes.
+ * Action: Hide a form element.
  */
-function rules_forms_action_set_access($form, $element, $access, $disabled, $required) {
-  // Access is selected by the user in the opposite fashion of how it actually works.
-  // Set the '#access' attribute based on whether to *hide* the form element or not.
-  $access = $access == 0;
+function rules_forms_action_set_access($form, $element, $access) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#access'] = $access;
-  $form_element['#disabled'] = $disabled;
-  $form_element['#required'] = $required;
+  $form_element['#access'] = $access == 0;
+}
+
+/**
+ * Action: Disable a form element.
+ */
+function rules_forms_action_set_disabled($form, $element, $disabled) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#disabled'] = $disabled == 1;
+}
+
+/**
+ * Action: Require a form element.
+ */
+function rules_forms_action_set_required($form, $element, $required) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#required'] = $required == 1;
 }
 
 /**

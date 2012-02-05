@@ -103,8 +103,27 @@ function rules_forms_rules_condition_info() {
  */
 function rules_forms_rules_action_info() {
   $actions = array();
-  $actions['rules_forms_text'] = array(
-    'label' => t('Set element text attributes'),
+  $actions['rules_forms_element_title'] = array(
+      'label' => t('Set the title of an element in the form'),
+      'group' => 'Rules forms',
+      'parameter' => array(
+        'form' => array('type' => 'form', 'label' => t('Form')),
+        'element' => array(
+          'type' => 'text',
+          'label' => t('Form element ID'),
+          'description' => t('ID of the form element to be targeted.') . ' ' . _rules_forms_element_description(),
+        ),
+        'title' => array(
+          'type' => 'text',
+          'label' => t('Title'),
+          'optional' => TRUE,
+        ),
+      ),
+      'access callback' => 'rules_forms_integration_access',
+      'base' => 'rules_forms_action_set_title',
+  );
+  $actions['rules_forms_element_description'] = array(
+    'label' => t('Set the description of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
@@ -115,22 +134,15 @@ function rules_forms_rules_action_info() {
       ),
       'title' => array(
         'type' => 'text',
-        'label' => t('Title'),
-        'optional' => TRUE,
-      ),
-      'description' => array(
-        'type' => 'text',
         'label' => t('Description'),
         'optional' => TRUE,
-        'description' => t('The description of the form element.'),
       ),
     ),
     'access callback' => 'rules_forms_integration_access',
-    'base' => 'rules_forms_action_set_text',
-    'help' => t('Note: If a field is left empty, the empty text will not be applied to the form element.'),
+    'base' => 'rules_forms_action_set_description',
   );
-  $actions['rules_forms_access'] = array(
-    'label' => t('Set element access attributes'),
+  $actions['rules_forms_element_access'] = array(
+    'label' => t('Hide an element in the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
@@ -145,21 +157,52 @@ function rules_forms_rules_action_info() {
         'optional' => TRUE,
         'description' => t('Hides a form element.'),
       ),
-      'disabled' => array(
-        'type' => 'boolean',
-        'label' => t('Disabled'),
-      ),
-      'required' => array(
-        'type' => 'boolean',
-        'label' => t('Required'),
-      ),
     ),
     'access callback' => 'rules_forms_integration_access',
     'base' => 'rules_forms_action_set_access',
-    'help' => t('Note: All attributes will be applied to the form element.'),
+  );
+  $actions['rules_forms_element_disabled'] = array(
+    'label' => t('Disable an element in the form'),
+    'group' => 'Rules forms',
+    'parameter' => array(
+      'form' => array('type' => 'form', 'label' => t('Form')),
+      'element' => array(
+        'type' => 'text',
+        'label' => t('Form element ID'),
+        'description' => t('ID of the form element to be targeted.') . ' ' . _rules_forms_element_description(),
+      ),
+      'access' => array(
+        'type' => 'boolean',
+        'label' => t('Disable'),
+        'optional' => TRUE,
+        'description' => t('Disables a form element.'),
+      ),
+    ),
+    'access callback' => 'rules_forms_integration_access',
+    'base' => 'rules_forms_action_set_disabled',
+  );
+  $actions['rules_forms_element_required'] = array(
+    'label' => t('Require an element in the form'),
+    'group' => 'Rules forms',
+    'parameter' => array(
+      'form' => array('type' => 'form', 'label' => t('Form')),
+      'element' => array(
+        'type' => 'text',
+        'label' => t('Form element ID'),
+        'description' => t('ID of the form element to be targeted.') . ' ' . _rules_forms_element_description(),
+      ),
+      'require' => array(
+        'type' => 'boolean',
+        'label' => t('Required'),
+        'optional' => TRUE,
+        'description' => t('Requires a form element.'),
+      ),
+    ),
+    'access callback' => 'rules_forms_integration_access',
+    'base' => 'rules_forms_action_set_required',
   );
   $actions['rules_forms_options'] = array(
-    'label' => t('Set multiple value element options'),
+    'label' => t('Set multiple value options of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
@@ -179,7 +222,7 @@ function rules_forms_rules_action_info() {
     'access callback' => 'rules_forms_integration_access',
   );
   $actions['rules_forms_default'] = array(
-    'label' => t('Set the default value of a form element'),
+    'label' => t('Set the default value of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
@@ -188,9 +231,9 @@ function rules_forms_rules_action_info() {
         'label' => t('Form element ID'),
         'description' => t('ID of the form element to be targeted.') . ' ' . _rules_forms_element_description(),
       ),
-      'message' => array(
+      'value' => array(
         'type' => 'text',
-        'label' => t('Message'),
+        'label' => t('Value'),
       ),
     ),
     'base' => 'rules_forms_action_set_element',
@@ -229,7 +272,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_adjust_weight',
   );
   $actions['rules_forms_prefix_suffix_html'] = array(
-    'label' => t('Insert HTML prefix/suffix code'),
+    'label' => t('Insert HTML into the prefix/suffix of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
@@ -253,7 +296,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_prefix_suffix_html',
   );
   $actions['rules_forms_set_error'] = array(
-    'label' => t('Set a form error'),
+    'label' => t('Set an error on the form'),
     'group' => 'Rules forms',
     'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
