@@ -109,8 +109,9 @@ function rules_forms_rules_condition_info() {
         'description' => t('The form element to be targeted.'),
       ),
       'value' => array(
-        'type' => 'text',
+        'type' => 'form_value',
         'label' => t('Value(s)'),
+        'optional' => TRUE,
         'description' => t('Value(s) assigned to the form element. If the form element allows multiple values, enter one value per line.'),
       ),
     ),
@@ -408,16 +409,21 @@ function rules_forms_rules_data_info() {
   return array(
     'form' => array(
       'label' => t('form'),
-      'group' => t('Rules forms'),
+      'group' => 'Rules forms',
     ),
     'form_state' => array(
       'label' => t('form state'),
-      'group' => t('Rules forms'),
+      'group' => 'Rules forms',
     ),
     'form_element' => array(
       'label' => t('form element'),
       'group' => 'Rules forms',
       'ui class' => 'RulesFormsDataElement',
+    ),
+    'form_value' => array(
+      'label' => t('form value'),
+      'group' => 'Rules forms',
+      'ui class' => 'RulesFormsDataValue',
     ),
   );
 }

@@ -5,10 +5,44 @@
  * Defines data type classes for forms and form elements.
  */
 
+abstract class RulesFormsDataUI extends RulesDataUI implements RulesDataDirectInputFormInterface {
+
+  /**
+   * Provides the default mode.
+   */
+  public static function getDefaultMode() {
+    return 'input';
+  }
+  
+  /**
+   * Provides the default form.
+   */
+  public static function defaultForm($name, $info, $settings, $title, $type = 'select') {
+    $form[$name] = array(
+        '#type' => $type,
+        '#title' => $title,
+        '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
+        '#required' => empty($info['optional']),
+    );
+    return $form;
+  }
+
+  /**
+   * Renders a parameter value.
+   */
+  public static function render($value) {
+    return array(
+      'content' => array('#markup' => check_plain($value)),
+      '#attributes' => array('class' => array('rules-forms-parameter')),
+    );
+  }
+
+}
+
 /**
  * Defines the form element data type UI.
  */
-class RulesFormsDataElement extends RulesDataUI implements RulesDataDirectInputFormInterface {
+class RulesFormsDataElement extends RulesFormsDataUI {
 
   /**
    * An array of attributes and the form element types to which they apply.
@@ -30,26 +64,6 @@ class RulesFormsDataElement extends RulesDataUI implements RulesDataDirectInputF
     'weight' => 'all',
     'value' => 'all',
   );
-
-  /**
-   * Provides the default mode.
-   */
-  public static function getDefaultMode() {
-    return 'input';
-  }
-
-  /**
-   * Provides the default form.
-   */
-  public static function defaultForm($name, $info, $settings, $title, $type = 'select') {
-    $form[$name] = array(
-      '#type' => $type,
-      '#title' => $title,
-      '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
-      '#required' => empty($info['optional']),
-    );
-    return $form;
-  }
 
   /**
    * Returns a select list with options including only available elements.
@@ -75,19 +89,31 @@ class RulesFormsDataElement extends RulesDataUI implements RulesDataDirectInputF
         }
       }
     }
-    $form = self::defaultForm($name, $info, $settings, 'Form element');
+    $form = parent::defaultForm($name, $info, $settings, 'Form element');
     $form[$name]['#options'] = $options;
     return $form;
   }
 
+}
+
+class RulesFormsDataValue extends RulesFormsDataUI {
+
   /**
-   * Renders a parameter value.
+   * Sets the input type based on the selected form element type.
    */
-  public static function render($value) {
-    return array(
-      'content' => array('#markup' => check_plain($value)),
-      '#attributes' => array('class' => array('rules-forms-parameter')),
-    );
+  public static function inputForm($name, $info, $settings, RulesPlugin $element) {
+    $form = parent::defaultForm($name, $info, $settings, 'Value');
+    if (!empty($element->settings['element'])) {
+      $type = substr($element->settings['element'], 0, strpos($element->settings['element'], ':'));
+      if ($type == 'checkboxes' || $type == 'radios' || $type == 'select') {
+        $form[$name]['#type'] = 'textarea';
+        $form[$name]['#title'] = 'Value(s)';
+      }
+      else {
+        $form[$name]['#type'] = $type;
+      }
+    }
+    return $form;
   }
 
 }
