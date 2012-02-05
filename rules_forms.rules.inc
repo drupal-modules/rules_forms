@@ -330,11 +330,13 @@ function rules_forms_rules_action_info() {
       'prefix' => array(
         'type' => 'text',
         'label' => t('Prefixed HTML'),
+        'optional' => TRUE,
         'description' => t('HTML inserted before the element.'),
       ),
       'suffix' => array(
         'type' => 'text',
         'label' => t('Suffixed HTML'),
+        'optional' => TRUE,
         'description' => t('HTML inserted after the element.'),
       ),
     ),

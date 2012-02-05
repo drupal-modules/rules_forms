@@ -15,3 +15,4 @@
 - #1429108: Fixed invalid argument being passed to the Set multiple options action.
 - #1361926 by jordojuice: Redirect action not working in certain cases. This action
   was redesigned to work faster and is much more reliable.
+- #1362856: Made prefix/suffix html fields optional so only one can be used if necessary.
