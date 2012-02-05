@@ -22,7 +22,7 @@ function rules_forms_admin_events($form, &$form_state) {
   );
   $form['general_settings']['enable_form_element_info'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display form element information'),
+    '#title' => t('Enable for element inspection popups'),
     '#default_value' => isset($_SESSION['rules_forms_element_info']) ? $_SESSION['rules_forms_element_info'] : FALSE,
     '#description' => t('If checked, the information about each form element will be displayed in popups on active forms. Only visible for your currently logged in user account.'),
   );

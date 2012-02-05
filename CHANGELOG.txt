@@ -10,3 +10,7 @@
 - #1261806 by jordojuice: Add a user interface to support the new action to set form
   element attributes. This is an aid to help users determine what settings exist on
   specific form elements via the interface.
+- Eliminated the set element attribute action in favor of 1.x style actions in order to
+  reduce complexity. Form elements are now filtered for each action based on whether a
+  form element can implement the desired attribute.
+- Improved the element inspection interface to be more themeable and better formatted.

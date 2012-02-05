@@ -3,25 +3,26 @@
  * Styles for Rules forms support module.
  */
 
-span.rules-forms-info-image {
+a.rules-forms-inspection-link {
 	display: inline-block;
-  background: transparent url(info_bubble.png) no-repeat 0px 30%;
+  background: transparent url(../../../../misc/help.png) left bottom no-repeat;
 	background-size: 14px 14px;
-  padding: 0;
 	margin: 0 4px;
-	width: 14px;
-	height: 14px;
+	width: 16px;
+	height: 16px;
+	position: relative;
+	top: 2px;
 }
 
-a.rules-forms-info-link:hover + div.rules-forms-element-info  {
+a.rules-forms-inspection-link:hover + div.rules-forms-element-inspection  {
   display: block;
 }
 
-a.rules-forms-info-link:focus + div.rules-forms-element-info {
+a.rules-forms-inspection-link:focus + div.rules-forms-element-inspection {
   display: block;
 }
 
-div.rules-forms-element-info {
+div.rules-forms-element-inspection {
   display: none;
   position: absolute;
   z-index: 50;
@@ -30,50 +31,39 @@ div.rules-forms-element-info {
   border: 1px solid #BEBFB9;
   font-size: .9em;
   font-weight: normal;
-  -moz-box-shadow: 2px 2px 4px #666;
-  -webkit-box-shadow: 2px 2px 4px #666;
-  box-shadow: 2px 2px 4px #666;
-  -moz-border-radius: 5px; /* FF1+ */
-  -webkit-border-radius: 5px; /* Saf3-4 */
-  border-radius: 5px; /* Opera 10.5, IE9, Saf5, Chrome */
-	margin-top: -4px;
+  -moz-box-shadow: 2px 10px 10px #999; /* FF1+ */
+  -webkit-box-shadow: 2px 10px 10px #999; /* Saf3-4 */
+  box-shadow: 2px 10px 10px #999; /* Opera 10.5, IE9, Saf5, Chrome */
+  -moz-border-radius: 6px; /* FF1+ */
+  -webkit-border-radius: 6px; /* Saf3-4 */
+  border-radius: 6px; /* Opera 10.5, IE9, Saf5, Chrome */
+	margin-top: -2px; /* Positions the box closer to the help icon */
 }
 
-div.rules-forms-element-info:hover {
+div.rules-forms-element-inspection:hover {
   display: block;
 }
 
-div.rules-forms-element-info span.rules-forms-element-label {
+div.rules-forms-element-inspection span.rules-forms-element-label h3 {
   font-weight: bold;
+	padding-left: 2px;
 }
 
-div.rules-forms-element-info table {
-  border: none;
+div.rules-forms-element-inspection table {
   margin-top: 6px;
 }
 
-div.rules-forms-element-info table tr {
-  border: none;
-}
-
-div.rules-forms-element-info table tr td {
-  padding: 0 6px;
-}
-
-div.rules-forms-element-info table tr td:last-child {
-  border: none;
-}
-
-td.rules-forms-element-type {
-  text-align: right;
-  font-weight: bold;
+div.rules-forms-element-inspection table td.rules-forms-element-type {
   vertical-align: top;
-  padding-top: 4px;
 }
 
-div.rules-forms-element-info ul {
+div.rules-forms-element-inspection table td.rules-forms-element-value {
+	font-style: italic;
+}
+
+div.rules-forms-element-inspection ul {
   list-style-type: circle;
-  margin: 0 0 0 8px;
+  margin: 0 0 0 14px;
 }
 
 span.rules-forms-info-help {

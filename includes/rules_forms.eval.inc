@@ -50,9 +50,73 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
 }
 
 /**
+ * Action: Set the title of a form element.
+ */
+function rules_forms_action_set_title($form, $element, $title) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#title'] = $title;
+}
+
+/**
+ * Action: Set the description of a form element.
+ */
+function rules_forms_action_set_description($form, $element, $description) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#description'] = $description;
+}
+
+/**
+ * Action: Hide a form element.
+ */
+function rules_forms_action_set_access($form, $element, $access) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#access'] = $access == 0;
+}
+
+/**
+ * Action: Disable a form element.
+ */
+function rules_forms_action_set_disabled($form, $element, $disabled) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#disabled'] = $disabled == 1;
+}
+
+/**
+ * Action: Require a form element.
+ */
+function rules_forms_action_set_required($form, $element, $required) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#required'] = $required == 1;
+}
+
+/**
+ * Action: Set the default value of a form element.
+ */
+function rules_forms_action_set_default($form, $element, $value) {
+  $form_element = &_rules_forms_get_element($form, $element);
+
+  // Try to determine if this is a multiple option element.
+  if (isset($form_element['#options']) && is_array($form_element['#options'])) {
+    $form_element['#default_value'] = explode("\r\n", $value);
+  }
+  else {
+    $form_element['#default_value'] = $value;
+  }
+}
+
+/**
+ * Action: Set the prefix of a form element.
+ */
+function rules_forms_action_set_prefix_suffix_html($form, $element, $prefix, $suffix) {
+  $form_element = &_rules_forms_get_element($form, $element);
+  $form_element['#prefix'] = $prefix;
+  $form_element['#suffix'] = $suffix;
+}
+
+/**
  * Action: Adjust weight of a form element.
  */
-function rules_forms_action_adjust_weight($form, $element, $weight) {
+function rules_forms_action_set_weight($form, $element, $weight) {
   $form_element = &_rules_forms_get_element($form, $element);
   $form_element['#weight'] = $weight;
 }
@@ -61,19 +125,29 @@ function rules_forms_action_adjust_weight($form, $element, $weight) {
  * Action: Set form error.
  */
 function rules_forms_action_set_error($form, $element, $message) {
-  if (substr($element, strlen($element) - 1) === ']') {
+  if (strpos($element, ':') !== FALSE) {
     $form_element = &_rules_forms_get_element($form, $element);
+    $parts = explode(':', $element);
+    array_shift($parts);
+    $prefix = array_shift($parts);
     if (isset($form_element['#parents'])) {
       $element = implode('][', $form_element['#parents']);
     }
     else {
-      // Remove trailing ']'.
-      $element = substr($element, 0, strlen($element) - 1);
-      // Insert ']' before the first '['.
-      $first_part = substr($element, 0, strpos($element, '['));
-      $second_part = substr($element, strpos($element, '['));
-      $element = $first_part . ']' . $second_part;
+      $element = count($parts) > 0 ? $prefix .']['. implode('][', $parts) : $prefix;
     }
+
+    //$element = str_replace(':', '][', $element);
+    //$form_element = &_rules_forms_get_element($form, $element);
+    //if (isset($form_element['#parents'])) {
+    //  $element = implode('][', $form_element['#parents']);
+    //}
+    //else {
+    //  // Insert ']' before the first '['.
+    //  $first_part = substr($element, 0, strpos($element, ':'));
+    //  $second_part = substr($element, strpos($element, ':'));
+    //  $element = $first_part . $second_part .']';
+    //}
   }
   form_set_error($element, $message);
 }
@@ -81,107 +155,74 @@ function rules_forms_action_set_error($form, $element, $message) {
 /**
  * Validation callback for set options action.
  */
-function rules_forms_action_set_attribute_validate($element) {
-  if (isset($element->settings['attribute']) && $element->settings['attribute'] == '#options') {
-    // Check for duplicate key values to prevent unexpected data loss. Require
-    // all options to include a safe_key.
-    $lines = explode("\n", trim($element->settings['access']));
-    $existing_keys = array();
-    $duplicate_keys = array();
-    $missing_keys = array();
-    $long_keys = array();
-    $group = '';
+function rules_forms_action_set_options_validate($element) {
+  // Check for duplicate key values to prevent unexpected data loss. Require
+  // all options to include a safe_key.
+  $lines = explode("\n", trim($element->settings['access']));
+  $existing_keys = array();
+  $duplicate_keys = array();
+  $missing_keys = array();
+  $long_keys = array();
+  $group = '';
 
-    // Check each option for validity - length, existence, and duplication.
-    foreach ($lines as $line) {
-      $matches = array();
-      $line = trim($line);
-      if (preg_match('/^([^|]*)\|(.*)$/', $line, $matches)) {
-        $key = $matches[1];
+  // Check each option for validity - length, existence, and duplication.
+  foreach ($lines as $line) {
+    $matches = array();
+    $line = trim($line);
+    if (preg_match('/^([^|]*)\|(.*)$/', $line, $matches)) {
+      $key = $matches[1];
 
-        // Validate the length of the key.
-        if (strlen($key) > 128) {
-          $long_keys[] = $key;
-        }
+      // Validate the length of the key.
+      if (strlen($key) > 128) {
+        $long_keys[] = $key;
       }
-      // The key was not found.
+    }
+    // The key was not found.
+    else {
+      $missing_keys[] = $line;
+    }
+
+    // Ensure this is not a duplicate key.
+    if (isset($key)) {
+      if (isset($existing_keys[$group][$key])) {
+        $duplicate_keys[$key] = $key;
+      }
       else {
-        $missing_keys[] = $line;
+        $existing_keys[$group][$key] = $key;
       }
+    }
+  }
 
-      // Ensure this is not a duplicate key.
-      if (isset($key)) {
-        if (isset($existing_keys[$group][$key])) {
-          $duplicate_keys[$key] = $key;
-        }
-        else {
-          $existing_keys[$group][$key] = $key;
-        }
-      }
-    }
-  
-    // Throw exceptions for validation errors.
-    if (!empty($missing_keys)) {
-      throw new RulesIntegrityException(t('Every option must have a key specified. Specify each option as "safe_key|Some readable option'), $element);
-    }
-  
-    if (!empty($long_keys)) {
-      throw new RulesIntegrityException(t('Option keys must be less than 128 characters. The following keys exceed this limit:') . theme('item_list', $long_keys), $element);
-    }
-  
-    if (!empty($duplicate_keys)) {
-      throw new RulesIntegrityException(t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)), $element);
-    }
+  // Throw exceptions for validation errors.
+  if (!empty($missing_keys)) {
+    throw new RulesIntegrityException(t('Every option must have a key specified. Specify each option as "safe_key|Some readable option'), $element);
+  }
+
+  if (!empty($long_keys)) {
+    throw new RulesIntegrityException(t('Option keys must be less than 128 characters. The following keys exceed this limit:') . theme('item_list', $long_keys), $element);
+  }
+
+  if (!empty($duplicate_keys)) {
+    throw new RulesIntegrityException(t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)), $element);
   }
 }
 
 /**
- * Action: Set form element attribute.
+ * Action: Set multiple value options of a form element.
  * Note: For multiple option values each key value pair is on its own line
  * and formatted key|value.
  */
-function rules_forms_action_set_attribute($form, $element_id, $attribute, $value) {
+function rules_forms_action_set_options($form, $element_id, $attribute, $value) {
   $form_element = &_rules_forms_get_element($form, $element_id);
   $lines = explode("\r\n", trim($value));
 
-  if ($attribute == '#options') {
-    $processed_options = array();
-    foreach ($lines as $line) {
-      $line = trim($line);
-      if (preg_match('/^([^|]+)\|(.*)$/', $line, $matches)) {
-        $processed_options[$matches[1]] = $matches[2];
-      }
+  $processed_options = array();
+  foreach ($lines as $line) {
+    $line = trim($line);
+    if (preg_match('/^([^|]+)\|(.*)$/', $line, $matches)) {
+      $processed_options[$matches[1]] = $matches[2];
     }
-    $form_element['#options'] = $processed_options;
   }
-  else {
-    // This value should only be one line.
-    $value = array_shift($lines);
-
-    // For boolean values, 0 or 1 may have been indicated. Convert to boolean.
-    switch ($value) {
-      case '0':
-        $value = FALSE;
-        break;
-      case '1':
-        $value = TRUE;
-        break;
-    }
-
-    $form_element[$attribute] = $value;
-  }
+  $form_element['#options'] = $processed_options;
 }
 
-/**
- * Helper function to extract a reference to a form element by a given name.
- */
-function &_rules_forms_get_element(&$form, $element_id) {
-  // Get the element key after the first colon.
-  $element_id = substr($element_id, strpos($element_id, ':') + 1);
-  $names = explode(':', $element_id);
-  $element = &$form;
-  foreach ($names as $name) {
-    $element =& $element[$name];
-  }
-  return $element;
-}
