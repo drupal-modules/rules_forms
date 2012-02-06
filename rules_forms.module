@@ -229,11 +229,19 @@ function rules_forms_add_popups(&$form, $elements) {
     $element = &_rules_forms_get_element($form, $element_id);
 
     // For fieldsets we have to use the suffix instead of the title.
-    $attribute = isset($element['#type']) && $element['#type'] == 'fieldset' ? '#suffix' : '#title';
+    $attribute = isset($element['#type']) && $element['#type'] == 'fieldset' || $element['#type'] == 'radio' || $element['#type'] == 'checkbox' ? '#prefix' : '#title';
 
     // Add the element inspection popup image.
     if (isset($element['#title'])) {
-      $element[$attribute] = $element['#title'] . '<a href="#" class="rules-forms-inspection-link"></a>';
+      if ($element['#type'] == 'checkbox') {
+        $element[$attribute] = '<a href="#" class="rules-forms-inspection-link" style="position:relative;top:22px;right:22px;"></a>';
+      }
+      elseif ($element['#type'] == 'radio') {
+        $element[$attribute] = '<a href="#" class="rules-forms-inspection-link" style="position:relative;top:28px;right:22px;"></a>';
+      }
+      else {
+        $element[$attribute] = $element['#title'] . '<a href="#" class="rules-forms-inspection-link"></a>';
+      }
     }
     else {
       $element[$attribute] = ucfirst(str_replace('_', ' ', $element['#type'])) .
