@@ -84,7 +84,9 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
  */
 function rules_forms_action_set_title($form, $element, $title) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#title'] = $title;
+  if (isset($form_element['#type'])) {
+    $form_element['#title'] = $title;
+  }
 }
 
 /**
@@ -92,7 +94,9 @@ function rules_forms_action_set_title($form, $element, $title) {
  */
 function rules_forms_action_set_description($form, $element, $description) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#description'] = $description;
+  if (isset($form_element['#type'])) {
+    $form_element['#description'] = $description;
+  }
 }
 
 /**
@@ -100,7 +104,9 @@ function rules_forms_action_set_description($form, $element, $description) {
  */
 function rules_forms_action_set_access($form, $element, $access) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#access'] = $access == 0;
+  if (isset($form_element['#type'])) {
+    $form_element['#access'] = $access == 0;
+  }
 }
 
 /**
@@ -108,7 +114,9 @@ function rules_forms_action_set_access($form, $element, $access) {
  */
 function rules_forms_action_set_disabled($form, $element, $disabled) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#disabled'] = $disabled == 1;
+  if (isset($form_element['#type'])) {
+    $form_element['#disabled'] = $disabled == 1;
+  }
 }
 
 /**
@@ -116,7 +124,9 @@ function rules_forms_action_set_disabled($form, $element, $disabled) {
  */
 function rules_forms_action_set_required($form, $element, $required) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#required'] = $required == 1;
+  if (isset($form_element['#type'])) {
+    $form_element['#required'] = $required == 1;
+  }
 }
 
 /**
@@ -139,8 +149,10 @@ function rules_forms_action_set_default($form, $element, $value) {
  */
 function rules_forms_action_set_prefix_suffix_html($form, $element, $prefix, $suffix) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#prefix'] = $prefix;
-  $form_element['#suffix'] = $suffix;
+  if (isset($form_element['#type'])) {
+    $form_element['#prefix'] = $prefix;
+    $form_element['#suffix'] = $suffix;
+  }
 }
 
 /**
@@ -148,7 +160,9 @@ function rules_forms_action_set_prefix_suffix_html($form, $element, $prefix, $su
  */
 function rules_forms_action_set_weight($form, $element, $weight) {
   $form_element = &_rules_forms_get_element($form, $element);
-  $form_element['#weight'] = (integer) $weight;
+  if (isset($form_element['#type'])) {
+    $form_element['#weight'] = (integer) $weight;
+  }
 }
 
 /**
@@ -242,6 +256,8 @@ function rules_forms_action_set_options($form, $element_id, $value) {
       $processed_options[$matches[1]] = $matches[2];
     }
   }
-  $form_element['#options'] = $processed_options;
+  if (isset($form_element['#type'])) {
+    $form_element['#options'] = $processed_options;
+  }
 }
 

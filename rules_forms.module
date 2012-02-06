@@ -329,7 +329,9 @@ function &_rules_forms_get_element(&$form, $element_id) {
   $names = explode(':', $element_id);
   $element = &$form;
   foreach ($names as $name) {
-    $element =& $element[$name];
+    if (isset($element[$name])) {
+      $element =& $element[$name];
+    }
   }
   return $element;
 }

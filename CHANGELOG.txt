@@ -1,3 +1,15 @@
+-------------
+ 7.x-1.0-dev
+-------------
+- #1429988: Add conditionals due to the fact that rules may break in the event that
+  form elements are limited due to a more restricted user role.
+
+-------------
+ 7.x-1.0-rc1
+-------------
+ - #1429954 by jordojuice: Write test cases for all forms, conditions, and actions.
+ - Fixed inconsistencies in naming of some rules.
+
 ---------------
  7.x-1.0-beta8
 ---------------
