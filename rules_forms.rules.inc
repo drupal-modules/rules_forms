@@ -121,6 +121,30 @@ function rules_forms_rules_condition_info() {
       'form_alter' => 'rules_forms_action_set_attribute_form_alter',
     ),
   );
+  $conditions['rules_forms_element_changed'] = array(
+    'label' => t('Form element value has changed'),
+    'group' => 'Rules forms',
+    'parameter' => array(
+      'form' => array(
+        'type' => 'form',
+        'label' => t('Form'),
+      ),
+      'form_state' => array(
+        'type' => 'form_state',
+        'label' => t('Form state'),
+      ),
+      'element' => array(
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('The form element to be targeted.'),
+      ),
+    ),
+    'base' => 'rules_forms_condition_element_changed',
+    'callbacks' => array(
+      'access' => 'rules_forms_integration_access',
+      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+    ),
+  );
   return $conditions;
 }
 

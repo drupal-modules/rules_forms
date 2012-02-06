@@ -52,6 +52,7 @@ class RulesFormsDataElement extends RulesFormsDataUI {
   private static $_attributes = array(
     'access' => 'all',
     'attributes' => 'all',
+    'changed' => 'all', // Allows the value changed condition to use this form.
     'disabled' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'button', 'submit'),
     'default' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios'),
     'description' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'item'),

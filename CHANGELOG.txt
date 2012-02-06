@@ -1,6 +1,11 @@
 -------------
- 7.x-1.x-beta7
+ 7.x-1.x-dev
 -------------
+- #766826 patch by jordojuice: Add condition: Field value has changed.
+
+---------------
+ 7.x-1.0-beta7
+---------------
 - #1383188 patch by mrfelton: Improvements for the "Set multiple value element options"
   action. Added a method for setting key|value pairs.
 - #1249694 by jordojuice: Improve usability of element ID system. Added a method of
