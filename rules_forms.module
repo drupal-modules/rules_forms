@@ -65,17 +65,6 @@ function rules_forms_menu() {
 }
 
 /**
- * Implements hook_cron().
- */
-function rules_forms_cron() {
-  $form_events = variable_get('rules_forms_event_info', array());
-  foreach ($form_events as $form_id => $info) {
-    $form_events[$form_id]['reset'] = TRUE;
-  }
-  variable_set('rules_forms_event_info', $form_events);
-}
-
-/**
  * Implements hook_form_alter().
  */
 function rules_forms_form_alter(&$form, &$form_state, $form_id) {
@@ -132,6 +121,7 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   $form_data = new ArrayObject((array)$form);
   $form_state_data = new ArrayObject((array)$form_state);
 
+  // Create an array of form element IDs to be passed as arguments.
   $elements = array();
   $form_events = variable_get('rules_forms_event_info', array());
   foreach ($form_events[$form_id]['elements'] as $element_id => $info) {
@@ -154,6 +144,8 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   }
 
   // Forms are passed by reference via the ArrayObject class.
+  // Element IDs for the form are appended and passed as arguments. This allows us to
+  // use a select list in rules for selecting form elements rather than entering an element ID.
   $args = array(
     'rules_forms_' . $form_id . '_' . $event_type,
     $form_data,
