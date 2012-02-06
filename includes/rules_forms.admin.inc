@@ -116,7 +116,9 @@ function rules_forms_elements_rebuild($form_id, $form_state) {
   $form_events[$form_state['values']['reset_form']]['reset'] = TRUE;
   variable_set('rules_forms_event_info', $form_events);
   drupal_set_message('Please revisit the form in order for Rules Forms to rebuild form element information.');
-  drupal_goto($form_events[$form_state['values']['reset_form']]['path']);
+  if (isset($form_events[$form_state['values']['reset_form']]['path'])) {
+    drupal_goto($form_events[$form_state['values']['reset_form']]['path']);
+  }
 }
 
 /**
