@@ -183,7 +183,7 @@ function rules_forms_rules_action_info() {
     'label' => t('Set the description of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => $element_params + array(
-      'title' => array(
+      'description' => array(
         'type' => 'text',
         'label' => t('Description'),
         'optional' => TRUE,
@@ -216,7 +216,7 @@ function rules_forms_rules_action_info() {
     'label' => t('Disable an element in the form'),
     'group' => 'Rules forms',
     'parameter' => $element_params + array(
-      'access' => array(
+      'disabled' => array(
         'type' => 'boolean',
         'label' => t('Disable'),
         'optional' => TRUE,
@@ -250,7 +250,7 @@ function rules_forms_rules_action_info() {
     'label' => t('Set multiple value options of an element in the form'),
     'group' => 'Rules forms',
     'parameter' => $element_params + array(
-      'access' => array(
+      'options' => array(
         'type' => 'text',
         'label' => t('Options'),
         'description' => t('<strong>Key-value pairs MUST be specified as "safe_key|Some readable option"</strong>. Use of only alphanumeric characters and underscores is recommended in keys. One option per line.'),

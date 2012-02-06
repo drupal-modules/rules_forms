@@ -26,6 +26,18 @@ class RulesFormsTestCase extends DrupalWebTestCase {
     $this->drupalLogin($this->privileged_user);
   }
 
+  private function enableNodeForm() {
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $edit = array();
+    $edit['enable_form_activation_message'] = 1;
+    $this->drupalPost(RULES_FORMS_ADMIN_PATH, $edit, t('Save settings'));
+    $this->drupalGet('node/add/article');
+    $this->clickLink('article_node_form');
+    $edit = array();
+    $edit['form_id_label'] = 'Article node form';
+    $this->drupalPost('admin/config/workflow/rules/forms/article_node_form/activate/node%25252Fadd%25252Farticle', $edit, t('Activate'));
+  }
+
   public function testInterface() {
     $this->drupalGet(RULES_FORMS_ADMIN_PATH);
     $this->assertNoText(t('Forms where events are activated'), t('No forms are activated yet.'));
@@ -77,6 +89,92 @@ class RulesFormsTestCase extends DrupalWebTestCase {
     $this->drupalPost(RULES_FORMS_ADMIN_PATH, $edit, t('Save settings'));
     $this->drupalGet(RULES_FORMS_ADMIN_PATH);
     $this->assertNoFieldChecked('edit-enable-form-activation-message');
+  }
+
+  public function testSetTitleAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#title' => 'tset');
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_title', array('element' => 'textfield:test', 'title' => 'test'));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#title'], 'test');
+  }
+
+  public function testSetDescriptionAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#description' => 'tset');
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_description', array('element' => 'textfield:test', 'description' => 'test'));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#description'], 'test');
+  }
+
+  public function testHideAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#access' => FALSE);
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_access', array('element' => 'textfield:test', 'access' => 1));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertFalse($form['test']['#access']);
+  }
+
+  public function testSetDisabledAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#disabled' => FALSE);
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_disabled', array('element' => 'textfield:test', 'disabled' => 1));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertTrue($form['test']['#disabled']);
+  }
+
+  public function testSetRequiredAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#required' => FALSE);
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_required', array('element' => 'textfield:test', 'require' => 1));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertTrue($form['test']['#required']);
+  }
+
+  public function testSetOptionsAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#options' => array('first' => 'tset'));
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_options', array('element' => 'textfield:test', 'options' => 'first|test'. "\r\n" .'second|tset'));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#options'], array('first' => 'test', 'second' => 'tset'));
+  }
+
+  public function testSetDefaultAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#default_value' => 'tset');
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_default', array('element' => 'textfield:test', 'value' => 'test'));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#default_value'], 'test');
+  }
+
+  public function testSetWeightAction() {
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#weight' => 0);
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_weight', array('element' => 'textfield:test', 'weight' => 20));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#weight'], 20);
+  }
+
+  public function testSetPrefixSuffixAction() {
+    $form = array();
+    $form['test'] = array(
+      '#type' => 'textfield',
+      '#prefix' => 'tset',
+      '#suffix' => 'test',
+    );
+    $form = new ArrayObject($form);
+    $action = rules_action('rules_forms_set_prefix_suffix', array('element' => 'textfield:test', 'prefix' => '<div id="test">', 'suffix' => '</div>'));
+    $action->executeByArgs(array('form' => $form));
+    $this->assertEqual($form['test']['#prefix'], '<div id="test">');
+    $this->assertEqual($form['test']['#suffix'], '</div>');
   }
 
 }

@@ -177,7 +177,7 @@ function rules_forms_action_set_error($form, $element, $message) {
 function rules_forms_action_set_options_validate($element) {
   // Check for duplicate key values to prevent unexpected data loss. Require
   // all options to include a safe_key.
-  $lines = explode("\n", trim($element->settings['access']));
+  $lines = explode("\n", trim($element->settings['options']));
   $existing_keys = array();
   $duplicate_keys = array();
   $missing_keys = array();
