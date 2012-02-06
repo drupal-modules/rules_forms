@@ -1,6 +1,6 @@
--------------
- 7.x-1.x-dev
--------------
+---------------
+ 7.x-1.0-beta8
+---------------
 - #766826 patch by jordojuice: Add condition: Field value has changed.
 - #1429558 patch by jordojuice: Redesign the way form elements are evaluated and reset.
 - #1429558 patch by jordojuice: Select lists being improperly filtered out of actions.

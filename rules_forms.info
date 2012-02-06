@@ -3,4 +3,5 @@ description = Provides events, conditions and actions for rule-based form custom
 core = 7.x
 dependencies[] = rules
 files[] = includes/rules_forms.ui.inc
+files[] = rules_forms.test
 package = Rules

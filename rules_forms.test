@@ -1,0 +1,75 @@
+<?php
+
+class RulesFormsTestCase extends DrupalWebTestCase {
+
+  protected $privileged_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Rules forms tests',
+      'description' => 'Tests the Rules forms interface and rules.',
+      'group' => 'Rules forms',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('rules_forms');
+    RulesLog::logger()->clear();
+    variable_set('rules_debug_log', 1);
+    $this->privileged_user = $this->drupalCreateUser(array(
+      'administer rules forms rules',
+      'administer rules forms',
+    ));
+    $this->drupalLogin($this->privileged_user);
+  }
+
+  public function testInterface() {
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $this->assertNoText(t('Forms where events are activated'), t('No forms are activated yet.'));
+
+    // Activate form event messages.
+    $edit = array();
+    $edit['enable_form_activation_message'] = 1;
+    $this->drupalPost(RULES_FORMS_ADMIN_PATH, $edit, t('Save settings'));
+    $this->assertText(t('The settings have been saved.'));
+    $this->assertTrue($_SESSION['rules_forms_message'], t('Activation messages are enabled.'));
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $this->assertFieldChecked('enable_form_activation_message');
+
+    $this->drupalGet('node/add/article');
+    $this->assertLink('article_node_form', 0, t('Article node form activation link is displayed.'));
+
+    // Activate the form.
+    $this->clickLink('article_node_form');
+    $this->assertText(t('Custom form label'));
+
+    $edit = array();
+    $edit['form_id_label'] = 'Article node form';
+    $this->drupalPost('admin/config/workflow/rules/forms/article_node_form/activate/node%25252Fadd%25252Farticle', $edit, t('Activate'));
+    $this->assertText(t('%form has been activated.', array('%form' => 'article_node_form')));
+
+    // Ensure that the newly activated form is shown in administration.
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $this->assertTest(t('Forms where events are activated'), t('Forms have been activated.'));
+
+    $form_events = variable_get('rules_forms_event_info', array());
+    $this->assertTrue(!empty($form_events['article_node_form']), t('Article node for was activated.'));
+    $this->assertTrue(!empty($form_events['article_node_form']['path']), t('Article node form path was stored.'));
+    $this->assertTrue(!empty($form_events['article_node_form']['elements']), t('Article node form elements were stored.'));
+
+    // Deactivate events for the form.
+    $edit = array();
+    $edit['form_events[article_node_form]'] = 1;
+    $this->drupalPost(RULES_FORMS_ADMIN_PATH, $edit, t('Deactivate events'));
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $this->assertNoText('Article node form');
+
+    // Deactivate form event messages.
+    $edit = array();
+    $edit['enable_form_activation_message'] = 0;
+    $this->drupalPost(RULES_FORMS_ADMIN_PATH, $edit, t('Save settings'));
+    $this->drupalGet(RULES_FORMS_ADMIN_PATH);
+    $this->assertNoFieldChecked('enable_form_activation_message');
+  }
+
+}
