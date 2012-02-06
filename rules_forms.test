@@ -91,6 +91,36 @@ class RulesFormsTestCase extends DrupalWebTestCase {
     $this->assertNoFieldChecked('edit-enable-form-activation-message');
   }
 
+  public function testElementValueCondition() {
+    // Test the condition with a regular value in the field.
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#value' => 'tset');
+    $form = new ArrayObject($form);
+    $form_state = new ArrayObject(array());
+
+    $condition1 = rules_condition('rules_forms_element_value', array('element' => 'textfield:test', 'value' => 'tset'));
+    $result1 = $condition1->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertTrue($result1, t('Element values are equal.'));
+
+    $condition2 = rules_condition('rules_forms_element_value', array('element' => 'textfield:test', 'value' => 'test'));
+    $result2 = $condition2->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertFalse($result2, t('Element values are not equal.'));
+
+    // Test the condition with a default value in the field.
+    $form = array();
+    $form['test'] = array('#type' => 'textfield', '#default_value' => 'tset');
+    $form = new ArrayObject($form);
+    $form_state = new ArrayObject(array());
+    
+    $condition1 = rules_condition('rules_forms_element_value', array('element' => 'textfield:test', 'value' => 'tset'));
+    $result1 = $condition1->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertTrue($result1, t('Element values are equal.'));
+    
+    $condition2 = rules_condition('rules_forms_element_value', array('element' => 'textfield:test', 'value' => 'test'));
+    $result2 = $condition2->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertFalse($result2, t('Element values are not equal.'));
+  }
+
   public function testSetTitleAction() {
     $form = array();
     $form['test'] = array('#type' => 'textfield', '#title' => 'tset');
