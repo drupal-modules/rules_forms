@@ -8,11 +8,18 @@
 /**
  * Condition: Check a form element value.
  */
-function rules_forms_condition_element_value($form, $form_state, $element, $value) {
+function rules_forms_condition_element_value($form, $form_state, $element, $value, $regex) {
   $form_element = &_rules_forms_get_element($form, $element);
 
   // First check if a value exists.
   if (isset($form_element['#value'])) {
+
+    // Perform the comparison with a regular expression if necessary.
+    if ($regex) {
+      $result = preg_match($value, $form_element['#value']) == 1;
+      return $result === FALSE ? FALSE : ($result == 1);
+    }
+
     // Multiple values come in as array.
     if (is_array($form_element['#value'])) {
       $lines = explode("\r\n", $value);
@@ -23,6 +30,13 @@ function rules_forms_condition_element_value($form, $form_state, $element, $valu
 
   // If no #value existed, check against the default value.
   if (isset($form_element['#default_value'])) {
+
+    // Perform the comparison with a regular expression if necessary.
+    if ($regex) {
+      $result = preg_match($value, $form_element['#default_value']);
+      return $result === FALSE ? FALSE : ($result == 1);
+    }
+
     if (is_array($form_element['#default_value'])) {
       $lines = explode("\r\n", $value);
       return rules_forms_equal_array_values($lines, $form_element['#default_value']);

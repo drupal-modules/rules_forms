@@ -3,6 +3,8 @@
 -------------
 - #1429988: Add conditionals due to the fact that rules may break in the event that
   form elements are limited due to a more restricted user role.
+- #1429960: Add additional test cases for conditions and actions.
+- #1353696: Support regular expressions in Condition: Element has value.
 
 -------------
  7.x-1.0-rc1

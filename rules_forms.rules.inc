@@ -114,6 +114,12 @@ function rules_forms_rules_condition_info() {
         'optional' => TRUE,
         'description' => t('Value(s) assigned to the form element. If the form element allows multiple values, enter one value per line.'),
       ),
+      'regex' => array(
+        'type' => 'boolean',
+        'label' => t('Evaluate as regular expression'),
+        'optional' => TRUE,
+        'description' => t('Perform the data comparison using the provided value as a regular expression.'),
+      ),
     ),
     'base' => 'rules_forms_condition_element_value',
     'callbacks' => array(
