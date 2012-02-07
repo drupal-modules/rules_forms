@@ -69,12 +69,12 @@ function rules_forms_admin_events($form, &$form_state) {
     );
     $form['form_elements']['reset_form'] = array(
       '#type' => 'select',
-      '#title' => t('Form elements'),
+      '#title' => t('Rebuild form elements'),
       '#options' => $options,
     );
     $form['form_elements']['reset_elements'] = array(
       '#type' => 'submit',
-      '#value' => t('Rebuild form elements'),
+      '#value' => t('Rebuild'),
       '#submit' => array('rules_forms_elements_rebuild'),
     );
   }
@@ -142,14 +142,21 @@ function rules_forms_activate($form_id_activate, $form_page) {
  */
 function rules_forms_activate_form($form, &$form_state, $form_id_activate, $form_page) {
   $default_form_label = drupal_ucfirst(str_replace('_', ' ', $form_id_activate));
-  $form = array(
-    'form_id_label' => array(
-      '#type' => 'textfield',
-      '#title' => t('Custom form label'),
-      '#default_value' => $default_form_label,
-      '#required' => TRUE,
-      '#description' => t('Enter a custom label for use in the administration user interface.'),
-    ),
+  $form = array();
+  $form['form_id_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom form label'),
+    '#default_value' => $default_form_label,
+    '#required' => TRUE,
+    '#description' => t('Enter a custom label for use in the administration user interface.'),
+  );
+  $form['button_validate_submit'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable button level validate/submit events'),
+    '#default_value' => FALSE,
+    '#description' => t('Enables validate and submit events for individual form buttons. Check this '.
+                        'option for cases where form validate or submit events are not being properly invoked, '.
+                        'such as in the case of the node edit form.'),
   );
   $form_state['form_id_activate'] = $form_id_activate;
   $form_state['form_page'] = $form_page;
@@ -172,6 +179,7 @@ function rules_forms_activate_form_submit($form, &$form_state) {
     'label' => $form_state['values']['form_id_label'],
     'elements' => array(),
     'path' => $path,
+    'buttons' => $form_state['values']['button_validate_submit'] == TRUE,
   );
 
   // Save the form information and force Rules to rebuild its cache.
