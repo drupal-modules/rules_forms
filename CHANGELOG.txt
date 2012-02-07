@@ -5,6 +5,7 @@
   form elements are limited due to a more restricted user role.
 - #1429960: Add additional test cases for conditions and actions.
 - #1353696: Support regular expressions in Condition: Element has value.
+- #1393572: Provide support for button level validation and submission handlers.
 
 -------------
  7.x-1.0-rc1

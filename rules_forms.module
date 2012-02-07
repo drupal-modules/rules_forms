@@ -76,6 +76,22 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
     $form['#validate'][] = 'rules_forms_event_validate';
     $form['#submit'][] = 'rules_forms_event_submit';
     $form['#after_build'][] = 'rules_forms_after_build';
+
+    // Add validate callback to button level validation.
+    if (isset($form_events[$form_id]['validate'])) {
+      foreach ($form_events[$form_id]['validate'] as $element_id) {
+        $element = &_rules_forms_get_element($form, $element_id);
+        $element['#validate'][] = 'rules_forms_event_validate';
+      }
+    }
+
+    // Add submit callback to button level submission.
+    if (isset($form_events[$form_id]['submit'])) {
+      foreach ($form_events[$form_id]['submit'] as $element_id) {print $element_id;
+        $element = &_rules_forms_get_element($form, $element_id);
+        $element['#submit'][] = 'rules_forms_event_submit';
+      }
+    }
   }
   elseif (!empty($_SESSION['rules_forms_message'])) {
     // Display form ID message if enabled for this session.
@@ -172,10 +188,14 @@ function rules_forms_after_build($form, &$form_state) {
   if ((isset($form_events[$form_id]['reset']) && $form_events[$form_id]['reset'])
       || (!isset($form_events[$form_id]['elements']) || empty($form_events[$form_id]['elements']))) {
     if (!empty($form_events[$form_id]['reset'])) {
-      $form_events[$form_id]['elements'] = array();
       $form_events[$form_id]['reset'] = FALSE;
     }
-    rules_forms_build_elements($form, $form_events[$form_id]['elements']);
+
+    $form_events[$form_id]['elements'] = array();
+    $form_events[$form_id]['validate'] = array();
+    $form_events[$form_id]['submit'] = array();
+
+    rules_forms_build_elements($form, $form_events[$form_id]['elements'], $form_events[$form_id]['validate'], $form_events[$form_id]['submit']);
     variable_set('rules_forms_event_info', $form_events);
     rules_clear_cache();
   }
@@ -200,17 +220,35 @@ function rules_forms_after_build($form, &$form_state) {
  *   This parameter should not be passed in and is used only recursively.
  * @see rules_forms_form_alter()
  */
-function rules_forms_build_elements($form, &$elements, $parent = '') {
+function rules_forms_build_elements($form, &$elements, &$validate, &$submit, $parent = '') {
   foreach (element_children($form) as $key) {
     // Only save element that have a title or value and are not hidden or tokens.
-    if (isset($form[$key]['#type']) && isset($form[$key]['#title']) && !in_array($form[$key]['#type'], array('hidden', 'token'))) {
-      $elements[$form[$key]['#type'] .':'. $parent . $key] = array(
-        'type' => $form[$key]['#type'],
-        'label' => ucfirst($form[$key]['#title']),
-      );
+    if (isset($form[$key]['#type'])) {
+      if ((isset($form[$key]['#title']) && !in_array($form[$key]['#type'], array('hidden', 'token')))
+          || $form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button') {
+        if ($form[$key]['#type'] == 'button' || $form[$key]['#type'] == 'submit') {
+          $elements[$form[$key]['#type'] .':'. $parent . $key] = array(
+              'type' => $form[$key]['#type'],
+              'label' => ucfirst($form[$key]['#value']),
+          );
+  
+          if (isset($form[$key]['#validate'])) {
+            $validate[] = $form[$key]['#type'] .':'. $parent . $key;
+          }
+          if (isset($form[$key]['#submit'])) {
+            $submit[] = $form[$key]['#type'] .':'. $parent . $key;
+          }
+        }
+        else {
+          $elements[$form[$key]['#type'] .':'. $parent . $key] = array(
+            'type' => $form[$key]['#type'],
+            'label' => ucfirst($form[$key]['#title']),
+          );
+        }
+    }
     }
     // Recursive call on children.
-    rules_forms_build_elements($form[$key], $elements, $parent . $key . ':');
+    rules_forms_build_elements($form[$key], $elements, $validate, $submit, $parent . $key . ':');
   }
 }
 
