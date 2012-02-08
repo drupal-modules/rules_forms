@@ -91,6 +91,7 @@ class RulesFormsDataElement extends RulesFormsDataUI {
         }
       }
     }
+    ksort($options);
     $form = parent::defaultForm($name, $info, $settings, 'Form element');
     $form[$name]['#options'] = $options;
     return $form;
