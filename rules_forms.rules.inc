@@ -369,10 +369,19 @@ function rules_forms_rules_action_info() {
   $actions['rules_forms_set_error'] = array(
     'label' => t('Set an error on the form'),
     'group' => 'Rules forms',
-    'parameter' => $element_params + array(
+    'parameter' =>  array(
+      'form' => array('type' => 'form', 'label' => t('Form')),
+      'element' => array(
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'restriction' => 'input',
+        'optional' => TRUE,
+        'description' => t('The form element to be targeted.'),
+      ),
       'message' => array(
         'type' => 'text',
         'label' => t('Message'),
+        'optional' => TRUE,
         'description' => t('The message that should be displayed to the user.'),
       ),
     ),
