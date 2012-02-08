@@ -174,7 +174,112 @@ class RulesFormsRulesTestCase extends DrupalWebTestCase {
     $this->clickLink('article_node_form');
     $edit = array();
     $edit['form_id_label'] = 'Article node form';
+    $edit['button_validate_submit'] = 1;
     $this->drupalPost('admin/config/workflow/rules/forms/article_node_form/activate/node%25252Fadd%25252Farticle', $edit, t('Activate'));
+  }
+
+}
+
+/**
+ * Tests Rules Forms events.
+ */
+class RulesFormsEventsTestCase extends RulesFormsRulesTestCase {
+
+  /**
+   * Defines test information.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Rules forms events',
+      'description' => 'Tests Rules forms events.',
+      'group' => 'Rules forms',
+    );
+  }
+  
+  /**
+   * Enables modules and logs in the privileged user.
+   */
+  public function setUp() {
+    parent::setUp();
+    $this->_enableNodeForm();
+  }
+
+  /**
+   * Tests the form built event.
+   */
+  public function testFormBuilt() {
+    $rule = rules_reaction_rule();
+    $rule->event('rules_forms_article_node_form_form_built')
+      ->action('drupal_message', array('message' => 'Form built successful!'));
+    $this->drupalGet('node/add/article');
+    $this->assertNoText('Form built successful!');
+    $rule->save('test');
+    $this->drupalGet('node/add/article');
+    $this->assertText('Form built successful!');
+  }
+
+  /**
+   * Tests the form validate event.
+   */
+  public function testFormValidate() {
+    $rule = rules_reaction_rule();
+    $rule->event('rules_forms_article_node_form_form_validate')
+      ->action('drupal_message', array('message' => 'Form validate successful!'));
+    $edit = array();
+    $edit['title'] = 'test';
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertNoText('Form validate successful!');
+    $rule->save('test');
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertText('Form validate successful!');
+  }
+
+  /**
+   * Tests the form submit event.
+   */
+  public function testFormSubmit() {
+    $rule = rules_reaction_rule();
+    $rule->event('rules_forms_article_node_form_form_submit')
+      ->action('drupal_message', array('message' => 'Form submit successful!'));
+    $edit = array();
+    $edit['title'] = 'test';
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertNoText('Form submit successful!');
+    $rule->save('test');
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertText('Form submit successful!');
+  }
+
+  /**
+   * Tests the button validate event.
+   */
+  public function testButtonValidate() {
+    $rule = rules_reaction_rule();
+    $rule->event('rules_forms_article_node_form_button_submit_actions_submit_validate')
+      ->action('drupal_message', array('message' => 'Button level validate successful!'));
+    $edit = array();
+    $edit['title'] = 'test';
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertNoText('Button level validate successful!');
+    $rule->save('test');
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertText('Button level validate successful!');
+  }
+
+  /**
+   * Tests the button submit event.
+   */
+  public function testButtonSubmit() {
+    $rule = rules_reaction_rule();
+    $rule->event('rules_forms_article_node_form_button_submit_actions_submit_submit')
+      ->action('drupal_message', array('message' => 'Button level submit successful!'));
+    $edit = array();
+    $edit['title'] = 'test';
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertNoText('Button level submit successful!');
+    $rule->save('test');
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertText('Button level submit successful!');
   }
 
 }
