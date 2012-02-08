@@ -273,7 +273,7 @@ function rules_forms_build_elements($form, &$form_info, $parent = '') {
         );
 
         // If this is a submit element, add it for use in adding button level validation and submission handlers.
-        if ($form_info['buttons'] && $form[$key]['#type'] == 'submit') {
+        if ($form_info['buttons'] && ($form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button')) {
           $form_info['submit'][$element_id] = isset($form[$key]['#value']) ? $form[$key]['#value'] : $key;
         }
       }
