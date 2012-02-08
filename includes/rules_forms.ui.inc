@@ -84,7 +84,10 @@ class RulesFormsDataElement extends RulesFormsDataUI {
         // Filter the elements by determining whether this attribute can be applied to them.
         if (isset(self::$_attributes[$attribute])
             && (self::$_attributes[$attribute] == 'all' || in_array($type, self::$_attributes[$attribute]))) {
-          $options[$key] = $value['label'];
+          if (!isset($options[$type])) {
+            $options[$type] = array();
+          }
+          $options[$type][$key] = $value['label'];
         }
       }
     }

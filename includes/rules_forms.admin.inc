@@ -52,7 +52,7 @@ function rules_forms_admin_events($form, &$form_state) {
       '#type' => 'checkboxes',
       '#title' => t('Forms where events are activated'),
       '#options' => $options,
-      '#description' => t('Forms that currently invoke events. Select forms to deactivate events on them.'),
+      '#description' => t('Forms that currently invoke events. Select forms to deactivate related events.'),
     );
     $form['active_forms']['events_deactivate'] = array(
       '#type' => 'submit',

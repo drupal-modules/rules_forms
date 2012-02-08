@@ -6,6 +6,7 @@
 - #1429960: Add additional test cases for conditions and actions.
 - #1353696: Support regular expressions in Condition: Element has value.
 - #1393572: Add support for button level validate and submit events.
+- #1432094: Update available attributes for form elements to reflect submit and button elements
 
 -------------
  7.x-1.0-rc1
