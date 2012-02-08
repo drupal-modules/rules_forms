@@ -13,6 +13,7 @@ function rules_forms_admin_events($form, &$form_state) {
   $form['general_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('General settings'),
+    '#collapsible' => TRUE,
   );
   $form['general_settings']['enable_form_activation_message'] = array(
     '#type' => 'checkbox',
