@@ -52,6 +52,7 @@ class RulesFormsDataElement extends RulesFormsDataUI {
   private static $_attributes = array(
     'access' => 'all',
     'changed' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
+    'clicked' => array('button', 'submit'), // For Condition: button was clicked.
     'disabled' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'button', 'submit'),
     'default' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
     'description' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'item'),

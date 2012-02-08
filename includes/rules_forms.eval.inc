@@ -66,6 +66,23 @@ function rules_forms_condition_element_changed($form, $form_state, $element) {
 }
 
 /**
+ * Condition: Form button was clicked.
+ */
+function rules_forms_condition_button_clicked($form, $form_state, $element) {
+  if (isset($form_state['triggering_element'])) {
+    $button = $form_state['triggering_element'];
+    $form_element = _rules_forms_get_element($form, $element);
+    if (isset($form_element['#name']) && isset($button['#name'])) {
+      return $form_element['#name'] === $button['#name'];
+    }
+    elseif (isset($form_element['#value']) && isset($button['#value'])) {
+      return $form_element['#value'] === $button['#value'];
+    }
+  }
+  return FALSE;
+}
+
+/**
  * Returns TRUE if both arrays contain the same values, regardless of their keys
  * and value ordering.
  */
