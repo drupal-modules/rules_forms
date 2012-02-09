@@ -37,6 +37,21 @@
  * Now you can add conditions and actions to react on the form event.
 
 
+ Activating button level validate and submit events
+ --------------------------------------------------
+
+ In some cases, form level validate and submit events may not appropriately
+ trigger your rules because forms may implement button level validate or submit
+ handlers or you may just want to target a specific form button for validate
+ or submit events. To activate button level validate and submit events:
+
+ * When activating events for a form, select the option labeled "Enable button
+   level validate/submit events".
+ * When creating new rules, you will find events for individual form buttons.
+ * Note: In Rules 2.x you can create rules that react on multiple events. Rules
+   forms rules can be invoked on form and button level validate/submit events.
+
+
  Creating form element conditions and actions
  --------------------------------------------
 
