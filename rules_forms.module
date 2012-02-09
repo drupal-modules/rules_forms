@@ -78,17 +78,11 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
     $form['#after_build'][] = 'rules_forms_after_build';
 
     // Add button level validation and submission handling.
-    if ($form_events[$form_id]['buttons'] && isset($form_events[$form_id]['validate'])) {
-      foreach ($form_events[$form_id]['validate'] as $element_id => $label) {
-        $element = &_rules_forms_get_element($form, $element_id);
-        $element['#rules_forms_element_id'] = $element_id;
-        $element['#validate'][] = 'rules_forms_event_button_validate';
-      }
-    }
     if ($form_events[$form_id]['buttons'] && isset($form_events[$form_id]['submit'])) {
       foreach ($form_events[$form_id]['submit'] as $element_id => $label) {
         $element = &_rules_forms_get_element($form, $element_id);
         $element['#rules_forms_element_id'] = $element_id;
+        $element['#validate'][] = 'rules_forms_event_button_validate';
         $element['#submit'][] = 'rules_forms_event_button_submit';
       }
     }
@@ -116,12 +110,12 @@ function rules_forms_event_validate(&$form, &$form_state) {
  *
  * @see rules_forms_form_alter()
  */
-function rules_forms_event_button_validate(&$form, &$form_state) {
+function rules_forms_event_button_validate(&$form, &$form_state) {;
   if (isset($form_state['clicked_button'])) {
     $form_events = variable_get('rules_forms_event_info', array());
     $form_id = $form['form_id']['#value'];
     $button = $form_state['clicked_button'];
-    if (isset($button['#rules_forms_element_id']) && isset($form_events[$form_id]['validate'][$button['#rules_forms_element_id']])) {
+    if (isset($button['#rules_forms_element_id']) && isset($form_events[$form_id]['submit'][$button['#rules_forms_element_id']])) {
       rules_forms_invoke_event('button_'. str_replace(':', '_', $button['#rules_forms_element_id']) .'_validate', $form, $form_state, $form_id);
     }
   }
@@ -272,9 +266,6 @@ function rules_forms_build_elements($form, &$form_info, $parent = '') {
 
         // If this is a submit element, add it for use in adding button level validation and submission handlers.
         if ($form_info['buttons'] && ($form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button')) {
-          if (isset($form[$key]['#validate'])) {
-            $form_info['validate'][$element_id] = isset($form[$key]['#value']) ? $form[$key]['#value'] : $key;
-          }
           if (isset($form[$key]['#submit'])) {
             $form_info['submit'][$element_id] = isset($form[$key]['#value']) ? $form[$key]['#value'] : $key;
           }

@@ -157,9 +157,8 @@ function rules_forms_activate_form($form, &$form_state, $form_id_activate, $form
     '#type' => 'checkbox',
     '#title' => t('Enable button level validate/submit events'),
     '#default_value' => FALSE,
-    '#description' => t('Enables validate and submit events for individual form buttons. Check this '.
-                        'option for cases where form validate or submit events are not being properly invoked, '.
-                        'such as in the case of the node edit form.'),
+    '#description' => t('Select this option to activate validate and submit events for cases where '.
+                        'general form validate and submit events are not properly invoked.'),
   );
   $form_state['form_id_activate'] = $form_id_activate;
   $form_state['form_page'] = $form_page;

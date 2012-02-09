@@ -158,6 +158,7 @@ class RulesFormsRulesTestCase extends DrupalWebTestCase {
         'create article content',
         'administer rules forms rules',
         'administer rules forms',
+        'administer site configuration',
     ));
     $this->drupalLogin($this->privileged_user);
   }
@@ -222,15 +223,22 @@ class RulesFormsEventsTestCase extends RulesFormsRulesTestCase {
    * Tests the form validate event.
    */
   public function testFormValidate() {
+    // We use the site information page to perform form validation since the node
+    // edit form uses button level validation.
+    $edit = array();
+    $edit['form_id_label'] = 'Article node form';
+    $edit['button_validate_submit'] = 1;
+    $this->drupalPost('admin/config/workflow/rules/forms/system_site_information_settings/activate/admin%25252Fconfig%25252Fsystem%25252Fsite-information', $edit, t('Activate'));
     $rule = rules_reaction_rule();
-    $rule->event('rules_forms_article_node_form_form_validate')
+    $rule->event('rules_forms_system_site_information_settings_form_validate')
       ->action('drupal_message', array('message' => 'Form validate successful!'));
     $edit = array();
-    $edit['title'] = 'test';
-    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $edit['site_name'] = 'test';
+    $edit['site_mail'] = 'test@test.com';
+    $this->drupalPost('admin/config/system/site-information', $edit, t('Save configuration'));
     $this->assertNoText('Form validate successful!');
     $rule->save('test');
-    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->drupalPost('admin/config/system/site-information', $edit, t('Save configuration'));
     $this->assertText('Form validate successful!');
   }
 
@@ -255,14 +263,14 @@ class RulesFormsEventsTestCase extends RulesFormsRulesTestCase {
    */
   public function testButtonValidate() {
     $rule = rules_reaction_rule();
-    $rule->event('rules_forms_article_node_form_button_submit_actions_submit_validate')
+    $rule->event('rules_forms_article_node_form_button_submit_actions_preview_validate')
       ->action('drupal_message', array('message' => 'Button level validate successful!'));
     $edit = array();
     $edit['title'] = 'test';
-    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->drupalPost('node/add/article', $edit, t('Preview'));
     $this->assertNoText('Button level validate successful!');
     $rule->save('test');
-    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->drupalPost('node/add/article', $edit, t('Preview'));
     $this->assertText('Button level validate successful!');
   }
 
