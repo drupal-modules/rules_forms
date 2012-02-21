@@ -65,7 +65,7 @@ function rules_forms_admin_events($form, &$form_state) {
       '#title' => t('Form elements'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
-      '#description' => t('Rules forms support stores information about the elements native to active '.
+      '#description' => t('Rules Forms Support stores information about the elements native to active '.
                           'forms. To rebuild the stored information about a form, select a form the select list below.'),
     );
     $form['form_elements']['reset_form'] = array(
@@ -116,7 +116,7 @@ function rules_forms_elements_rebuild($form_id, $form_state) {
   $form_events = variable_get('rules_forms_event_info');
   $form_events[$form_state['values']['reset_form']]['reset'] = TRUE;
   variable_set('rules_forms_event_info', $form_events);
-  drupal_set_message(t('Please revisit %form so Rules forms support can re-evaluate element information.',
+  drupal_set_message(t('Please revisit %form so Rules forms Support can re-evaluate element information.',
       array('%form' => $form_events[$form_state['values']['reset_form']]['label'])));
   if (isset($form_events[$form_state['values']['reset_form']]['path'])
       && drupal_lookup_path($form_events[$form_state['values']['reset_form']]['path']) !== FALSE) {

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Rules Forms provides events, conditions, and actions for site forms.
+ * Rules Forms Support provides events, conditions, and actions for site forms.
  */
 
 define('RULES_FORMS_ADMIN_PATH', 'admin/config/workflow/rules/forms');
@@ -13,9 +13,9 @@ define('RULES_FORMS_ADMIN_PATH', 'admin/config/workflow/rules/forms');
 function rules_forms_help($path, $arg) {
 	switch ($path) {
     case 'admin/help#rules_forms':
-      return '<p>' . t('Rules forms provides Rules events, conditions, and actions for any form '.
+      return '<p>' . t('Rules Forms Support provides Rules events, conditions, and actions for any form '.
                        'built with the Drupal form API. To activate events for a form you must first '.
-                       'visit <a href="!admin">Rules forms settings</a> and enable activation messages.',
+                       'visit <a href="!admin">Rules Forms settings</a> and enable activation messages.',
                        array('!admin' => url(RULES_FORMS_ADMIN_PATH))) . '</p>';
     case RULES_FORMS_ADMIN_PATH:
       return '<p>' . t('Settings and overview of form events and active elements.') . '</p>';
@@ -45,7 +45,7 @@ function rules_forms_menu() {
   $items = array();
   $items[RULES_FORMS_ADMIN_PATH] = array(
     'title' => 'Form events',
-    'description' => 'Configure Rules forms events.',
+    'description' => 'Configure Rules Forms events.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('rules_forms_admin_events'),
     'access arguments' => array('administer rules forms'),

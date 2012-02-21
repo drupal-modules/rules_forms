@@ -1,4 +1,4 @@
-name = Rules forms support
+name = Rules Forms Support
 description = Provides events, conditions and actions for rule-based form customization.
 core = 7.x
 ;dependencies[] = rules
