@@ -151,6 +151,21 @@ function rules_forms_event_button_submit(&$form, &$form_state) {
 /**
  * Invoke rules event of a certain type.
  *
+ * @param string $event_type
+ *   The type of Rules Forms event being invoked.
+ *   - form_built
+ *   - form_validate
+ *   - form_submit
+ *   - button_ELEMENT_ID_validate
+ *   - button_ELEMENT_ID_submit
+ * @param array $form
+ *   A reference to the form array for which the event is being invoked.
+ * @param array $form_state
+ *   A reference to the form state array for which the event is being invoked.
+ * @param string|null $form_id
+ *   The form ID of the form for which the event is being invoked, or NULL. If
+ *   NULL the form ID will be retrieved from the $form array.
+ *
  * @see rules_forms_event_validate()
  * @see rules_forms_event_submit()
  * @see rules_forms_form_alter()
@@ -241,13 +256,14 @@ function rules_forms_after_build($form, &$form_state) {
 /**
  * Builds elements of a form for storage in a variable.
  *
- * @param $form
+ * @param array $form
  *   The form whose elements info is being saved.
- * @param $form_info
+ * @param array $form_info
  *   Current form information for this form to be populated with elements.
- * @param $parent
+ * @param string $parent
  *   A string identifying the parent of the current element being processed.
  *   This parameter should not be passed in and is used only recursively.
+ *
  * @see rules_forms_form_alter()
  */
 function rules_forms_build_elements($form, &$form_info, $parent = '') {
@@ -281,9 +297,9 @@ function rules_forms_build_elements($form, &$form_info, $parent = '') {
  * Create element information popups for each element of a form.
  * This functions is only called if the current session has the setting enabled.
  *
- * @param $form
+ * @param array $form
  *   The form currently being viewed.
- * @param $elements
+ * @param array $elements
  *   An array of element info for the form being viewed.
  */
 function rules_forms_add_popups(&$form, $elements) {
@@ -338,14 +354,14 @@ function rules_forms_add_popups(&$form, $elements) {
  * Prints element array information either directly or in unordered lists.
  * Array values are processed recursively until 3 arrays have been reached.
  *
- * @param $element
+ * @param string $element
  *   The form element's property that will hold the text. This argument is
  *   passed by reference and is manipulated directly.
- * @param $data
+ * @param array $data
  *   The data to be converted into readable formatted text.
- * @param $level
+ * @param int $level
  *   The current level of arrays in processing. Defaults to 1.
- * @param $key
+ * @param string $delta
  *   The key of the current array value. This is used in recursive calls
  *   to demonstrate the structure of an array to the user.
  */
@@ -385,6 +401,15 @@ function _rules_forms_display_info(&$element, $data, $level = 1, $delta = NULL) 
 
 /**
  * Helper function to extract a reference to a form element by a given name.
+ *
+ * @param array $form
+ *   A reference to the form from which the element is to be returned.
+ * @param string $element_id
+ *   An element ID that indicates the element's position in the $form
+ *   array by keys separated by colons (:).
+ *
+ * @return array
+ *   A reference to the form element that can be altered directly.
  */
 function &_rules_forms_get_element(&$form, $element_id) {
   // Get the element key after the first colon.
