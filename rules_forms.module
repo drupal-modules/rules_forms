@@ -225,11 +225,13 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
  */
 function rules_forms_after_build($form, &$form_state) {
   $form_events = variable_get('rules_forms_event_info', array());
-  $form_id = isset($form['#id']) ? str_replace('-', '_', $form['#id']) : '';
+  $form_id = $form['form_id']['#value'];
 
   // Set elements for form events if necessary.
-  if ((isset($form_events[$form_id]['reset']) && $form_events[$form_id]['reset'])
-      || (!isset($form_events[$form_id]['elements']) || empty($form_events[$form_id]['elements']))) {
+  // Ensure that the form ID matches an activated form's form ID to prevent
+  // improper Rules events from being loaded in hook_rules_event_info().
+  if (isset($form_events[$form_id]) && ((isset($form_events[$form_id]['reset']) && $form_events[$form_id]['reset'])
+      || (!isset($form_events[$form_id]['elements']) || empty($form_events[$form_id]['elements'])))) {
 
     if (!empty($form_events[$form_id]['reset'])) {
       $form_events[$form_id]['reset'] = FALSE;
