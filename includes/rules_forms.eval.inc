@@ -80,12 +80,12 @@ function rules_forms_condition_element_value($form, $form_state, $element, $valu
  *   form was built.
  */
 function rules_forms_condition_element_changed($form, $form_state, $element) {
-  $form_id = isset($form['#id']) ? str_replace('-', '_', $form['#id']) : '';
+  $form_id = $form['form_id']['#value'];
 
-  if (isset($_SESSION['rules_forms_form_'. $form_id .'_values'])) {
+  if (isset($_SESSION['rules_forms_form_values'][$form_id])) {
     // Get the build form values and the element name being validated.
     $element_name = substr($element, strpos($element, ':') + 1);
-    $build_values = $_SESSION['rules_forms_form_'. $form_id .'_values'];
+    $build_values = $_SESSION['rules_forms_form_values'][$form_id];
 
     // Ensure that form values are set. This will prevent the condition from being evaluated during build.
     if (isset($build_values[$element]) && isset($form_state['values']) && isset($form_state['values'][$element_name])) {

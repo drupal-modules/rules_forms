@@ -176,9 +176,10 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
     $form_id = $form['form_id']['#value'];
   }
 
-  // Prepare form data to be passed by reference as ArrayObjects.
-  $form_data = new ArrayObject((array)$form);
-  $form_state_data = new ArrayObject((array)$form_state);
+  // Ensure element values are reset if the form is being built.
+  if ($event_type == 'form_built') {
+    $_SESSION['rules_forms_form_values'][$form_id] = array();
+  }
 
   // Create an array of form element IDs to be passed as arguments.
   $elements = array();
@@ -191,20 +192,25 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
     if ($event_type == 'form_built') {
       $element = &_rules_forms_get_element($form, $element_id);
       if (isset($element['#value'])) {
-        $_SESSION['rules_forms_form_'. $form_id .'_values'][$element_id] = $element['#value'];
+        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = $element['#value'];
       }
       elseif (isset($element['#default_value'])) {
-        $_SESSION['rules_forms_form_'. $form_id .'_values'][$element_id] = $element['#default_value'];
+        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = $element['#default_value'];
       }
       else {
-        $_SESSION['rules_forms_form_'. $form_id .'_values'][$element_id] = NULL;
+        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = NULL;
       }
     }
   }
 
+  // Prepare form data to be passed by reference as ArrayObjects.
+  $form_data = new ArrayObject((array)$form);
+  $form_state_data = new ArrayObject((array)$form_state);
+
   // Forms are passed by reference via the ArrayObject class.
-  // Element IDs for the form are appended and passed as arguments. This allows us to
-  // use a select list in rules for selecting form elements rather than entering an element ID.
+  // Element IDs for the form are appended and passed as arguments.
+  // This allows us to use a select list in rules for selecting
+  // form elements rather than entering an element ID.
   $args = array(
     'rules_forms_' . $form_id . '_' . $event_type,
     $form_data,
@@ -218,6 +224,12 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   // Repopulate form arrays to update the form.
   $form = (array) $form_data;
   $form_state = (array) $form_state_data;
+
+  // If a submit event has been invoked (form or button level) unset
+  // the form values session variable.
+  if (strpos($event_type, 'submit', strlen($event_type) - 7) !== FALSE) {
+    unset($_SESSION['rules_forms_form_values'][$form_id]);
+  }
 }
 
 /**
