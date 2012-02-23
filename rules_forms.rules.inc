@@ -464,7 +464,7 @@ function rules_forms_action_set_attribute_form_alter(&$form, &$form_state, $opti
   );
 
   // Use ajax and trigger as the reload button.
-  $form['parameter']['type']['settings']['element']['#ajax'] = $form['reload']['#ajax'] + array(
+  $form['parameter']['element']['settings']['element']['#ajax'] = $form['reload']['#ajax'] + array(
     'event' => 'change',
     'trigger_as' => array('name' => 'reload'),
   );
