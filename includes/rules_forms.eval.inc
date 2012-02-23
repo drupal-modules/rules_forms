@@ -27,39 +27,32 @@
 function rules_forms_condition_element_value($form, $form_state, $element, $value, $regex) {
   $form_element = &_rules_forms_get_element($form, $element);
 
-  // First check if a value exists.
-  if (isset($form_element['#value'])) {
-
-    // Perform the comparison with a regular expression if necessary.
-    if ($regex) {
-      $result = preg_match($value, $form_element['#value']) == 1;
-      return $result === FALSE ? FALSE : ($result == 1);
-    }
-
-    // Multiple values come in as array.
-    if (is_array($form_element['#value'])) {
-      $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $form_element['#value']);
-    }
-    return $form_element['#value'] === $value;
+  // Check the #value if it exists, then #default_value, or return FALSE.
+  $attribute = isset($form_element['#value']) ? '#value' : '#default_value';
+  if (!isset($form_element[$attribute])) {
+    return FALSE;
   }
 
-  // If no #value existed, check against the default value.
-  if (isset($form_element['#default_value'])) {
-
-    // Perform the comparison with a regular expression if necessary.
-    if ($regex) {
-      $result = preg_match($value, $form_element['#default_value']);
-      return $result === FALSE ? FALSE : ($result == 1);
+  // Perform the comparison with a regular expression if necessary.
+  if ($regex) {
+    // Allow multiple regular expressions to be run, one on each line.
+    // Return FALSE immediately if an expression fails.
+    $lines = explode("\r\n", $value);
+    foreach ($lines as $line) {
+      $result = preg_match($value, $form_element[$attribute]) == 1;
+      if ($result === FALSE) {
+        return FALSE;
+      }
     }
-
-    if (is_array($form_element['#default_value'])) {
-      $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $form_element['#default_value']);
-    }
-    return $form_element['#default_value'] === $value;
+    return TRUE;
   }
-  return FALSE;
+
+  // Multiple values come in as array.
+  if (is_array($form_element[$attribute])) {
+    $lines = explode("\r\n", $value);
+    return rules_forms_equal_array_values($lines, $form_element[$attribute]);
+  }
+  return $form_element[$attribute] === $value;
 }
 
 /**

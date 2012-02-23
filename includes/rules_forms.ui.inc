@@ -112,7 +112,7 @@ class RulesFormsDataValue extends RulesFormsDataUI {
     $form = parent::defaultForm($name, $info, $settings, 'Value');
     if (!empty($element->settings['element'])) {
       $type = substr($element->settings['element'], 0, strpos($element->settings['element'], ':'));
-      if ($type == 'checkboxes' || $type == 'radios' || $type == 'select') {
+      if (in_array($type, array('checkboxes', 'radios', 'select', 'textfield'))) {
         $form[$name]['#type'] = 'textarea';
         $form[$name]['#title'] = 'Value(s)';
       }

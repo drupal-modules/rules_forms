@@ -133,13 +133,14 @@ function rules_forms_rules_condition_info() {
         'type' => 'boolean',
         'label' => t('Evaluate as regular expression'),
         'optional' => TRUE,
-        'description' => t('Perform the data comparison using the provided value as a regular expression.'),
+        'description' => t('Perform the data comparison using the provided value as a regular expression. '.
+                           'To execute multiple regular expressions, enter one expression per line.'),
       ),
     ),
     'base' => 'rules_forms_condition_element_value',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $conditions['rules_forms_element_changed'] = array(
@@ -163,7 +164,7 @@ function rules_forms_rules_condition_info() {
     'base' => 'rules_forms_condition_element_changed',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $conditions['rules_forms_button_clicked'] = array(
@@ -187,7 +188,7 @@ function rules_forms_rules_condition_info() {
     'base' => 'rules_forms_condition_button_clicked',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   return $conditions;
@@ -221,7 +222,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_title',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_description'] = array(
@@ -237,7 +238,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_description',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_access'] = array(
@@ -254,7 +255,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_access',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_disabled'] = array(
@@ -271,7 +272,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_disabled',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_required'] = array(
@@ -288,7 +289,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_required',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_options'] = array(
@@ -305,7 +306,7 @@ function rules_forms_rules_action_info() {
     'validate' => 'rules_forms_action_set_options_validate',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_default'] = array(
@@ -322,7 +323,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_default',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_weight'] = array(
@@ -339,7 +340,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_weight',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_prefix_suffix'] = array(
@@ -362,7 +363,7 @@ function rules_forms_rules_action_info() {
     'base' => 'rules_forms_action_set_prefix_suffix_html',
     'callbacks' => array(
       'access' => 'rules_forms_integration_access',
-      'form_alter' => 'rules_forms_action_set_attribute_form_alter',
+      'form_alter' => 'rules_forms_element_form_alter',
     ),
   );
   $actions['rules_forms_set_error'] = array(
@@ -451,7 +452,7 @@ function rules_forms_rules_data_info() {
 /**
  * Alters the form for action: Set element property. Taken from Rules module.
  */
-function rules_forms_action_set_attribute_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
+function rules_forms_element_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
   $first_step = empty($element->settings['element']);
   $form['reload'] = array(
     '#weight' => 10,
@@ -484,6 +485,16 @@ function rules_forms_action_set_attribute_form_alter(&$form, &$form_state, $opti
     unset($form['negate']);
   }
   else {
+    // For the Condition: Element has value form, unset the regex option
+    // if it doesn't make sense for the type of field selected.
+    if ($element->getElementName() == 'rules_forms_element_value') {
+      $type = substr($element->settings['element'], 0, strpos($element->settings['element'], ':'));
+      if ($type != 'textfield' && $type != 'textarea') {
+        $form['parameter']['regex']['#access'] = FALSE;
+        $form['parameter']['regex']['settings']['regex']['#type'] = 'value';
+        $form['parameter']['regex']['settings']['regex']['#value'] = 0;
+      }
+    }
     // Hide the reload button in case js is enabled and it's not the first step.
     $form['reload']['#attributes'] = array('class' => array('rules-hide-js'));
   }
