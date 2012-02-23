@@ -72,7 +72,7 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
 
   if (isset($form_events[$form_id])) {
     // Set elements for form events.
-    rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
+    rules_forms_event_build($form, $form_state, $form_id);
     $form['#validate'][] = 'rules_forms_event_validate';
     $form['#submit'][] = 'rules_forms_event_submit';
     $form['#after_build'][] = 'rules_forms_after_build';
@@ -94,6 +94,35 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
     $msg = t('Activate events for ');
     drupal_set_message($msg . $link, 'status', FALSE);
   }
+}
+
+/**
+ * Form build handler. Stores form values and invokes the event.
+ */
+function rules_forms_event_build(&$form, &$form_state, $form_id) {
+  // Save form element values for use in conditions.
+  $_SESSION['rules_forms_form_values'][$form_id] = array();
+  $form_events = variable_get('rules_forms_event_info', array());
+  if (isset($form_events[$form_id]['elements'])) {
+
+    $form_values = array();
+    foreach ($form_events[$form_id]['elements'] as $element_id => $info) {
+      $element = &_rules_forms_get_element($form, $element_id);
+      if (isset($element['#value'])) {
+        $form_values[$element_id] = $element['#value'];
+      }
+      elseif (isset($element['#default_value'])) {
+        $form_values[$element_id] = $element['#default_value'];
+      }
+      else {
+        $form_values[$element_id] = NULL;
+      }
+    }
+
+    $_SESSION['rules_forms_form_values'][$form_id] = $form_values;
+  }
+  // Invoke the form_built event.
+  rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
 }
 
 /**
@@ -176,31 +205,11 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
     $form_id = $form['form_id']['#value'];
   }
 
-  // Ensure element values are reset if the form is being built.
-  if ($event_type == 'form_built') {
-    $_SESSION['rules_forms_form_values'][$form_id] = array();
-  }
-
   // Create an array of form element IDs to be passed as arguments.
   $elements = array();
   $form_events = variable_get('rules_forms_event_info', array());
-  foreach ($form_events[$form_id]['elements'] as $element_id => $info) {
-    $elements[$element_id] = $element_id;
-
-    // Save values if the form is being built. These values can be used in conditions
-    // to determine whether a field has changed during validation.
-    if ($event_type == 'form_built') {
-      $element = &_rules_forms_get_element($form, $element_id);
-      if (isset($element['#value'])) {
-        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = $element['#value'];
-      }
-      elseif (isset($element['#default_value'])) {
-        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = $element['#default_value'];
-      }
-      else {
-        $_SESSION['rules_forms_form_values'][$form_id][$element_id] = NULL;
-      }
-    }
+  if (isset($form_events[$form_id]['elements'])) {
+    $elements = array_combine(array_keys($form_events[$form_id]['elements']), array_keys($form_events[$form_id]['elements']));
   }
 
   // Prepare form data to be passed by reference as ArrayObjects.
