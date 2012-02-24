@@ -770,7 +770,7 @@ class RulesFormsAPITestCase extends RulesFormsRulesTestCase {
     // Indicate that this button was clicked.
     $form_id = self::$_form['form_id']['#value'];
     $form_state = self::$_form_state;
-    $form_state['clicked_button'] = array('#rules_forms_element_id' => 'fieldset:button:test');
+    $form_state['triggering_element'] = array('#rules_forms_element_id' => 'fieldset:button:test');
     
     // Ensure that the session variables are unset for the form.
     $_SESSION['rules_forms_form_values'][$form_id] = array('textfield:title' => 'tset', 'textarea:body:und:0:value' => 'tset');
