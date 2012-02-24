@@ -6,6 +6,7 @@
 - #1451302 by jordojuice: Change use of $_SESSION variables to use only a single array.
 - #1451314 by jordojuice: Add API functions for handling Rules Forms internal form
   information. Also adds tests for all new API functions.
+- #1452958 by jordojuice: Change menu item to be labeled Forms Support.
 
 -------------
  7.x-1.0-rc2

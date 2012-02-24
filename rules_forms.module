@@ -44,7 +44,7 @@ function rules_forms_permission() {
 function rules_forms_menu() {
   $items = array();
   $items[RULES_FORMS_ADMIN_PATH] = array(
-    'title' => 'Form events',
+    'title' => 'Forms Support',
     'description' => 'Configure Rules Forms events.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('rules_forms_admin_events'),
