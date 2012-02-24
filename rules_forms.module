@@ -140,10 +140,10 @@ function rules_forms_event_validate(&$form, &$form_state) {
  * @see rules_forms_form_alter()
  */
 function rules_forms_event_button_validate(&$form, &$form_state) {;
-  if (isset($form_state['clicked_button'])) {
+  if (isset($form_state['triggering_element'])) {
     $form_id = $form['form_id']['#value'];
     $form_info = rules_forms_get_form_info($form_id);
-    $button = $form_state['clicked_button'];
+    $button = $form_state['triggering_element'];
     if (isset($button['#rules_forms_element_id']) && isset($form_info['submit'][$button['#rules_forms_element_id']])) {
       rules_forms_invoke_event('button_'. str_replace(':', '_', $button['#rules_forms_element_id']) .'_validate', $form, $form_state, $form_id);
     }
@@ -167,10 +167,10 @@ function rules_forms_event_submit(&$form, &$form_state) {
  * @see rules_forms_form_alter()
  */
 function rules_forms_event_button_submit(&$form, &$form_state) {
-  if (isset($form_state['clicked_button'])) {
+  if (isset($form_state['triggering_element'])) {
     $form_id = $form['form_id']['#value'];
     $form_info = rules_forms_get_form_info($form_id);
-    $button = $form_state['clicked_button'];
+    $button = $form_state['triggering_element'];
     if (isset($button['#rules_forms_element_id']) && isset($form_info['submit'][$button['#rules_forms_element_id']])) {
       rules_forms_invoke_event('button_'. str_replace(':', '_', $button['#rules_forms_element_id']) .'_submit', $form, $form_state, $form_id);
     }

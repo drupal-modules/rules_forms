@@ -400,7 +400,7 @@ class RulesFormsConditionsTestCase extends RulesFormsRulesTestCase {
   }
 
   /**
-   * Tests Condition: Element value has changed.
+   * Tests callback for Condition: Element value has changed.
    */
   public function testElementValueChangedCondition() {
     $form = self::$_form;
@@ -421,6 +421,33 @@ class RulesFormsConditionsTestCase extends RulesFormsRulesTestCase {
     $condition2 = rules_condition('rules_forms_element_changed', array('element' => 'textfield:title'));
     $result2 = $condition2->executeByArgs(array('form' => $form, 'form_state' => $form_state));
     $this->assertTrue($result2, 'Form value has changed.');
+  }
+
+  /**
+   * Tests callback for Condition: Form button was clicked.
+   */
+  public function testFormButtonClickedCondition() {
+    $form = self::$_form;
+    $form_state = self::$_form_state;
+
+    $form['test_submit'] = array(
+      '#name' => 'test_submit',
+      '#type' => 'submit',
+      '#value' => 'Submit',
+      '#submit' => 'rules_forms_test_submit',
+    );
+
+    // Test for condition not met.
+    $form_state['triggering_element'] = array('#name' => 'test_button', '#type' => 'button', '#value' => 'Test');
+    $condition1 = rules_condition('rules_forms_button_clicked', array('element' => 'submit:test_submit'));
+    $result1 = $condition1->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertFalse($result1, 'Clicked button condition not met.');
+
+    // Test for condition met.
+    $form_state['triggering_element'] = $form['test_submit'];
+    $condition2 = rules_condition('rules_forms_button_clicked', array('element' => 'submit:test_submit'));
+    $result2 = $condition2->executeByArgs(array('form' => $form, 'form_state' => $form_state));
+    $this->assertTrue($result2, 'Clicked button condition met.');
   }
 
 }
