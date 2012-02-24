@@ -1,5 +1,14 @@
 -------------
- 7.x-1.0-dev
+ 7.x-1.x-dev
+-------------
+- #1451560 by jordojuice: Hide regular expression option when it doesn't make sense for
+  the field type in Condition: Form element has value.
+- #1451302 by jordojuice: Change use of $_SESSION variables to use only a single array.
+- #1451314 by jordojuice: Add API functions for handling Rules Forms internal form
+  information. Also adds tests for all new API functions.
+
+-------------
+ 7.x-1.0-rc2
 -------------
 - #1429988 by jordojuice: Add conditionals due to the fact that rules may break in
   the event that form elements are limited due to a more restricted user role.
@@ -10,6 +19,8 @@
   and button elements.
 - #1255348 by jordojuice: Add Condition: Form button was clicked.
 - #1429960 by jordojuice: Add tests for Rules forms support events.
+- #1447328 by jordojuice: Fixed major bug in evaluating form elements which caused
+  user-side error messages.
 
 -------------
  7.x-1.0-rc1

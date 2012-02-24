@@ -24,7 +24,7 @@ function rules_forms_install() {
  * Implements hook_uninstall().
  */
 function rules_forms_uninstall() {
-  variable_del('rules_forms_event_info');
+  variable_del('rules_forms_form_info');
 }
 
 /**
@@ -48,4 +48,13 @@ function rules_forms_update_7102() {
     }
   }
   variable_set('rules_forms_event_info', $event_info);
+}
+
+/**
+ * Change Rules Forms settings variable name.
+ */
+function rules_forms_update_7103() {
+  $form_info = variable_get('rules_forms_event_info', array());
+  variable_set('rules_forms_form_info', $form_info);
+  variable_del('rules_forms_event_info');
 }
