@@ -1,6 +1,10 @@
-name = Rules Forms support
+name = Rules Forms Support
 description = Provides events, conditions and actions for rule-based form customization.
 core = 7.x
-dependencies[] = rules
-files[] = includes/rules_forms.ui.inc
+;dependencies[] = rules
 package = Rules
+files[] = includes/rules_forms.form.inc
+files[] = includes/rules_forms.form_state.inc
+files[] = includes/rules_forms.element.inc
+files[] = includes/rules_forms.ui.inc
+files[] = rules_forms.test

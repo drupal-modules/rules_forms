@@ -4,14 +4,14 @@
  */
 
 a.rules-forms-inspection-link {
-	display: inline-block;
+  display: inline-block;
   background: transparent url(../../../../misc/help.png) left bottom no-repeat;
-	background-size: 14px 14px;
-	margin: 0 4px;
-	width: 16px;
-	height: 16px;
-	position: relative;
-	top: 2px;
+  background-size: 14px 14px;
+  margin: 0 4px;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: 2px;
 }
 
 a.rules-forms-inspection-link:hover + div.rules-forms-element-inspection  {
@@ -37,7 +37,7 @@ div.rules-forms-element-inspection {
   -moz-border-radius: 6px; /* FF1+ */
   -webkit-border-radius: 6px; /* Saf3-4 */
   border-radius: 6px; /* Opera 10.5, IE9, Saf5, Chrome */
-	margin-top: -2px; /* Positions the box closer to the help icon */
+  margin-top: -2px; /* Positions the box closer to the help icon */
 }
 
 div.rules-forms-element-inspection:hover {
@@ -46,7 +46,7 @@ div.rules-forms-element-inspection:hover {
 
 div.rules-forms-element-inspection span.rules-forms-element-label h3 {
   font-weight: bold;
-	padding-left: 2px;
+  padding-left: 2px;
 }
 
 div.rules-forms-element-inspection table {
@@ -58,7 +58,7 @@ div.rules-forms-element-inspection table td.rules-forms-element-type {
 }
 
 div.rules-forms-element-inspection table td.rules-forms-element-value {
-	font-style: italic;
+  font-style: italic;
 }
 
 div.rules-forms-element-inspection ul {
