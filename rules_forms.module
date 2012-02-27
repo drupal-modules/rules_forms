@@ -485,7 +485,7 @@ function rules_forms_get_form_info($form_id = NULL) {
 
   // Allow the passage of a $form array.
   if (!is_string($form_id)) {
-    if (isset($form_id['form_id']['#value'])) {
+    if (isset($form_id['form_id'])) {
       $form_id = $form_id['form_id']['#value'];
     }
     else {

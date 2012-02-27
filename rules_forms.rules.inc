@@ -89,9 +89,9 @@ function rules_forms_event_variables() {
  */
 function rules_forms_element_variables($form_id) {
   $variables = array();
-  $events = variable_get('rules_forms_event_info', array());
-  if (isset($events[$form_id]['elements']) && is_array($events[$form_id]['elements'])) {
-    foreach ($events[$form_id]['elements'] as $key => $info) {
+  $form_info = rules_forms_get_form_info($form_id);
+  if (isset($form_info['elements']) && is_array($form_info['elements'])) {
+    foreach ($form_info['elements'] as $key => $info) {
       $variables[$key] = array(
         'type' => 'form_element',
         'label' => $info['label'],
