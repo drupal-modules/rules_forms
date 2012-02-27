@@ -5,6 +5,10 @@
  * Evaluation functions for Rules Forms module.
  */
 
+function rules_forms_action_set_property($element, $value) {
+  
+}
+
 /**
  * Condition: Check a form element value.
  *

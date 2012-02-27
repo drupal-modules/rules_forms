@@ -19,10 +19,10 @@ abstract class RulesFormsDataUI extends RulesDataUI implements RulesDataDirectIn
    */
   public static function defaultForm($name, $info, $settings, $title, $type = 'select') {
     $form[$name] = array(
-      '#type' => $type,
-      '#title' => $title,
-      '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
-      '#required' => empty($info['optional']),
+        '#type' => $type,
+        '#title' => $title,
+        '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
+        '#required' => empty($info['optional']),
     );
     return $form;
   }

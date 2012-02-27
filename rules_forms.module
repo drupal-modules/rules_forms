@@ -68,126 +68,165 @@ function rules_forms_menu() {
  * Implements hook_entity_info().
  */
 function rules_forms_entity_info() {
-  $entities = array();
-  $entities['rules_form'] = array(
+  $return = array();
+  $return['form'] = array(
     'label' => t('Form'),
-    'static cache' => FALSE,
     'module' => 'rules_forms',
-    'label callback' => '_rules_forms_form_label',
-    'entity class' => 'RulesFormsForm',
+    'entity class' => 'RulesFormsArrayEntity',
     'controller class' => 'RulesFormsFormController',
-    'rules controller class' => 'RulesFormsFormRulesController',
-    'views controller class' => FALSE,
+    'rules controller class' => 'RulesFormsRulesController',
+    'base table' => 'rules_forms',
     'entity keys' => array(
-      'id' => 'form_id',
+      'id' => 'fid',
+      'name' => 'form_id',
+      'bundle' => 'form_id',
     ),
     'bundles' => array(),
   );
-  $entities['rules_form_state'] = array(
+
+  $return['form_state'] = array(
     'label' => t('Form state'),
-    'static cache' => FALSE,
     'module' => 'rules_forms',
-    'label callback' => '_rules_forms_form_label',
-    'entity class' => 'RulesFormsFormState',
+    'entity class' => 'RulesFormsArrayEntity',
     'controller class' => 'RulesFormsFormStateController',
-    'rules controller class' => 'RulesFormsFormRulesController',
-    'views controller class' => FALSE,
+    'rules controller class' => 'RulesFormsRulesController',
+    'base table' => 'rules_forms',
     'entity keys' => array(
-      'id' => 'form_id',
+      'id' => 'fid',
+      'name' => 'form_id',
+      'bundle' => 'form_id',
     ),
     'bundles' => array(),
   );
-  $entities['rules_form_element'] = array(
-    'label' => t('Form element'),
-    'static cache' => FALSE,
-    'module' => 'rules_forms',
-    'label callback' => '_rules_forms_element_label',
-    'entity class' => 'RulesFormsElement',
-    'controller class' => 'RulesFormsElementController',
-    'rules controller class' => 'RulesFormsElementRulesController',
-    'views controller class' => FALSE,
-    'entity keys' => array(
-      'id' => 'element_id',
-    ),
-    'bundles' => array(),
-  );
-  return $entities;
+
+  // Each active for is a bundle.
+  foreach (rules_forms_get_form_info() as $form_id => $info) {
+    $return['form']['bundles'][$form_id] = array(
+      'label' => $info['label'],
+    );
+    $return['form_state']['bundles'][$form_id] = array(
+      'label' => $info['label'],
+    );
+  }
+  return $return;
 }
 
 /**
  * Implements hook_entity_property_info().
  */
 function rules_forms_entity_property_info() {
-  $info = array();
-  $form = &$info['rules_form']['properties'];
-  $form['label'] = array(
-    'label' => t('Label'),
-    'type' => 'text',
-    'description' => t('The form label'),
+  $form_info = rules_forms_get_form_info();
+  $properties = array(
+    'form' => array('bundles' => array()),
+    'form_state' => array('bundles' => array()),
   );
-  $form['elements'] = array(
-    'label' => t('Form elements'),
-    'type' => 'list<rules_form_element>',
-    'description' => t('A list of existing form elements'),
-  );
-
-  $element = &$info['rules_form_element']['properties'];
-  $element['label'] = array(
-    'label' => t('Label'),
-    'type' => 'text',
-    'description' => t('Element label'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'computed' => TRUE,
-  );
-  $element['description'] = array(
-    'label' => t('Description'),
-    'type' => 'text',
-    'description' => t('Element description'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'computed' => TRUE,
-  );
-  $element['default_value'] = array(
-    'label' => t('Default value'),
-    'type' => 'struct',
-    'description' => t('Element default value'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'setter callback' => 'rules_forms_element_set_property',
-    'computed' => TRUE,
-    'property info alter' => 'rules_forms_element_default',
-  );
-  $element['hidden'] = array(
-    'label' => t('Hidden'),
-    'type' => 'boolean',
-    'description' => t('Element is hidden'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'setter callback' => 'rules_forms_element_set_property',
-    'computed' => TRUE,
-  );
-  $element['disabled'] = array(
-    'label' => t('Disabled'),
-    'type' => 'boolean',
-    'description' => t('Element is disabled'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'setter callback' => 'rules_forms_element_set_property',
-    'computed' => TRUE,
-  );
-  $element['required'] = array(
-    'label' => t('Required'),
-    'type' => 'boolean',
-    'description' => t('Element is required'),
-    'getter callback' => 'rules_forms_element_get_properties',
-    'setter callback' => 'rules_forms_element_set_property',
-    'computed' => TRUE,
-  );
-  return $info;
+  foreach ($form_info as $form_id => $info) {
+    $properties['form']['bundles'][$form_id]['properties'] = $info['properties'];
+    $properties['form_state']['bundles'][$form_id]['properties']['values'] = array(
+      'type' => 'struct',
+      'label' => t('Form values'),
+    );
+  }
+  return $properties;
 }
 
-function rules_forms_element_get_properties($element, array $options, $name) {
-  $attribute = '#'. $name;
-  if (isset($element[$attribute])) {
-    return $element[$attribute];
+/**
+ * Returns defined properties for form elements. Properties are
+ * formatted for hook_entity_property_info().
+ *
+ * @param string|null $type
+ *   An optional key specifying which element type's properties
+ *   to return.
+ *
+ * @return array
+ *   An array of property for all form element types or for a
+ *   specific element type if one was provided.
+ */
+function rules_forms_element_properties($type = NULL) {
+  $properties = &drupal_static(__FUNCTION__);
+  if (!isset($properties)) {
+    $properties = module_invoke_all('rules_forms_element_property_info');
+    drupal_alter('rules_forms_element_property_info', $properties);
   }
-  return FALSE;
+
+  if ($type !== NULL) {
+    return isset($properties[$type]) ? $properties[$type] : array();
+  }
+  return $properties;
+}
+
+/**
+ * Implements hook_rules_forms_element_property_info().
+ */
+function rules_forms_rules_forms_element_property_info() {
+  $common = array(
+    '#access' => array('type' => 'boolean', 'label' => 'access'),
+    '#description' => array('type' => 'text', 'label' => 'description'),
+    '#disabled' => array('type' => 'boolean', 'label' => 'disabled'),
+    '#prefix' => array('type' => 'text', 'label' => 'prefix'),
+    '#suffix' => array('type' => 'text', 'label' => 'suffix'),
+    '#title' => array('type' => 'text', 'label' => 'title'),
+    '#weight' => array('type' => 'integer', 'label' => 'weight'),
+  );
+
+  $field = array(
+    '#default_value' => array('type' => 'text', 'label' => 'default value'),
+    '#field_prefix' => array('type' => 'text', 'label' => 'field prefix'),
+    '#field_suffix' => array('type' => 'text', 'label' => 'field suffix'),
+  );
+
+  $elements = array();
+  $elements['fieldset'] = $common + array(
+    '#collapsible' => array('type' => 'boolean', 'label' => 'collapsible'),
+    '#collapsed' => array('type' => 'boolean', 'label' => 'collapsed'),
+  );
+  $elements['textfield'] = $common + $field;
+  $elements['textarea'] = $common + $field;
+  $elements['checkbox'] = $common + $field;
+  $elements['checkboxes'] = $common + $field + array(
+    '#options' => array('type' => 'text', 'label' => 'options'),
+  );
+  $elements['radio'] = $common + $field;
+  $elements['radios'] = $common + $field + array(
+    '#options' => array('type' => 'text', 'label' => 'options'),
+  );
+  $elements['select'] = $common + $field + array(
+    '#multiple' => array('type' => 'boolean', 'label' => 'allow multiple'),
+    '#options' => array('type' => 'text', 'label' => 'options'),
+  );
+
+  $defaults = array(
+    'computed' => TRUE,
+    'getter callback' => 'rules_forms_get_property',
+    'setter callback' => 'rules_forms_set_property',
+  );
+  foreach ($elements as $key => $value) {
+    foreach ($value as $property => $info) {
+      $elements[$key][$property] += $defaults;
+    }
+  }
+  return $elements;
+}
+
+/**
+ * Creates a data structure (array).
+ */
+function rules_forms_create_structure() {
+  return array();
+}
+
+/**
+ * Returns a form element property.
+ */
+function rules_forms_get_property($element, array $options, $name, $type) {
+  return $element[$name];
+}
+
+/**
+ * Sets a form element property.
+ */
+function rules_forms_set_property(&$element, $name, $value) {
+  $element[$name] = $value;
 }
 
 /**
@@ -326,46 +365,19 @@ function rules_forms_event_button_submit(&$form, &$form_state) {
  * @see rules_forms_form_alter()
  */
 function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = NULL) {
-  global $user;
   if (empty($form_id)) {
     $form_id = $form['form_id']['#value'];
   }
 
-  // Create an array of form element IDs to be passed as arguments.
-  $elements = array();
-  if ($element_ids = rules_forms_get_element_ids($form_id)) {
-    $elements = array_combine($element_ids, $element_ids);
-  }
+  // Prepare and wrap form data for passage to Rules.
+  $form_wrapped = new RulesFormsFormWrapper('form', new RulesFormsArrayEntity($form_id, $form));
+  $form_state_wrapped = new RulesFormsFormStateWrapper('form_state', new RulesFormsArrayEntity($form_id, $form_state));
 
-  // Prepare form data to be passed by reference as ArrayObjects.
-  $form_data = new ArrayObject((array)$form);
-  $form_state_data = new ArrayObject((array)$form_state);
-
-  $elements = array();
-  foreach (rules_forms_get_element_info($form_id) as $element_id => $info) {
-    $element = &_rules_forms_get_element($form, $element_id);
-    $entity = entity_create('rules_form_element', array('element_id' => $element_id, 'element' => $element, 'label' => $info['label']));
-    $elements[$element_id] = $entity;
-  }
-  $form_entity = entity_create('rules_form', array('form_id' => $form_id, 'form' => $form, 'elements' => $elements));
-
-  // Forms are passed by reference via the ArrayObject class.
-  // Element IDs for the form are appended and passed as arguments.
-  // This allows us to use a select list in rules for selecting
-  // form elements rather than entering an element ID.
-  $args = array(
-    "rules_forms_{$form_id}_{$event_type}",
-    $form_data,
-    $form_state_data,
-    $form_id,
-    $user,
-  ) + $elements;
-
-  call_user_func_array('rules_invoke_event', $args);
+  rules_invoke_event("rules_forms_{$form_id}_{$event_type}", $form_wrapped, $form_state_wrapped);
 
   // Repopulate form arrays to update the form.
-  $form = (array) $form_data;
-  $form_state = (array) $form_state_data;
+  $form = (array) $form_wrapped->value()->getArray();
+  $form_state = (array) $form_state_wrapped->value()->getArray();
 
   // If a submit event has been invoked (form or button level) unset
   // the form values session variable.
@@ -385,17 +397,16 @@ function rules_forms_after_build($form, &$form_state) {
   // Ensure that the form ID matches an activated form's form ID to prevent
   // improper Rules events from being loaded in hook_rules_event_info().
   if ($form_info !== FALSE && ((isset($form_info['reset']) && $form_info['reset'])
-      || (!isset($form_info['elements']) || empty($form_info['elements'])))) {
-
+      // || (!isset($form_info['elements']) || empty($form_info['elements'])))) {
+      || (!isset($form_info['properties']) || empty($form_info['properties'])))) {
     if (!empty($form_info['reset'])) {
       $form_info['reset'] = FALSE;
     }
 
-    $form_info['elements'] = array();
-    $form_info['validate'] = array();
-    $form_info['submit'] = array();
+    $form_info['properties'] = array();
+    rules_forms_build_property_info($form, $form_info['properties']);
 
-    rules_forms_build_elements($form, $form_info);
+    // rules_forms_build_elements($form, $form_info);
     rules_forms_save_form_info($form_id, $form_info);
     drupal_set_message(t('Form elements for %form have been built.', array('%form' => $form_info['label'])));
   }
@@ -409,42 +420,28 @@ function rules_forms_after_build($form, &$form_state) {
 }
 
 /**
- * Builds elements of a form for storage in a variable.
+ * Builds an associative array of property info as required in
+ * hook_entity_property_info(). The array is built by recursively
+ * reading the form array.
  *
  * @param array $form
- *   The form whose elements info is being saved.
- * @param array $form_info
- *   Current form information for this form to be populated with elements.
- * @param string $parent
- *   A string identifying the parent of the current element being processed.
- *   This parameter should not be passed in and is used only recursively.
- *
- * @see rules_forms_form_alter()
+ *   The form array containing elements from which property info
+ *   is derived.
+ * @param array $properties
+ *   The properties array.
  */
-function rules_forms_build_elements($form, &$form_info, $parent = '') {
+function rules_forms_build_property_info($form, &$properties) {
   foreach (element_children($form) as $key) {
-    // Only save element that have a title or value and are not hidden or tokens.
-    if (isset($form[$key]['#type'])) {
-      if ((isset($form[$key]['#title']) && !in_array($form[$key]['#type'], array('hidden', 'token')))
-          || $form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button') {
-        $element_id = $form[$key]['#type'] .':'. $parent . $key;
-
-        $form_info['elements'][$element_id] = array(
-          'type' => $form[$key]['#type'],
-          'label' => $form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button'
-            ? $form[$key]['#value'] : ucfirst($form[$key]['#title']),
-        );
-
-        // If this is a submit element, add it for use in adding button level validation and submission handlers.
-        if ($form_info['buttons'] && ($form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button')) {
-          if (isset($form[$key]['#submit'])) {
-            $form_info['submit'][$element_id] = isset($form[$key]['#value']) ? $form[$key]['#value'] : $key;
-          }
-        }
-      }
+    if (isset($form[$key]['#type']) && array_key_exists($form[$key]['#type'], rules_forms_element_properties())) {
+      $properties[$key]['type'] = 'struct';
+      $properties[$key]['label'] = isset($form[$key]['#label']) ? "{$form[$key]['#label']} ({$form[$key]['#type']})" : "$key ({$form[$key]['#type']})";
+      $properties[$key]['computed'] = TRUE;
+      $properties[$key]['getter callback'] = 'rules_forms_get_property';
+      $properties[$key]['setter callback'] = 'rules_forms_set_property';
+      $properties[$key]['auto creation'] = 'rules_forms_create_structure';
+      $properties[$key]['property info'] = rules_forms_element_properties($form[$key]['#type']);
+      rules_forms_build_property_info($form[$key], $properties[$key]['property info']);
     }
-    // Recursive call on children.
-    rules_forms_build_elements($form[$key], $form_info, $parent . $key . ':');
   }
 }
 
@@ -573,7 +570,7 @@ function &_rules_forms_get_element(&$form, $element_id) {
   $element = &$form;
   foreach ($names as $name) {
     if (isset($element[$name])) {
-      $element = new ArrayObject(&$element[$name]);
+      $element =& $element[$name];
     }
   }
   return $element;
@@ -619,7 +616,7 @@ function rules_forms_get_form_info($form_id = NULL) {
 
   // Allow the passage of a $form array.
   if (!is_string($form_id)) {
-    if (isset($form_id['form_id']['#value'])) {
+    if (isset($form_id['form_id'])) {
       $form_id = $form_id['form_id']['#value'];
     }
     else {
@@ -641,12 +638,12 @@ function rules_forms_get_form_info($form_id = NULL) {
  *   upon saving. This defaults to TRUE.
  */
 function rules_forms_save_form_info($form_id, $form_info, $rebuild_cache = TRUE) {
-  $event_info = variable_get('rules_forms_event_info', array());
+  $event_info = variable_get('rules_forms_form_info', array());
   $event_info[$form_id] = $form_info;
   variable_set('rules_forms_form_info', $event_info);
 
   if ($rebuild_cache) {
-    rules_clear_cache();
+    cache_clear_all();
   }
 }
 
@@ -700,4 +697,3 @@ function rules_forms_deactivate_form($form_id) {
   }
   variable_set('rules_forms_form_info', $form_info);
 }
-
