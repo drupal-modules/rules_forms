@@ -507,7 +507,7 @@ function rules_forms_get_form_info($form_id = NULL) {
  *   upon saving. This defaults to TRUE.
  */
 function rules_forms_save_form_info($form_id, $form_info, $rebuild_cache = TRUE) {
-  $event_info = variable_get('rules_forms_event_info', array());
+  $event_info = variable_get('rules_forms_form_info', array());
   $event_info[$form_id] = $form_info;
   variable_set('rules_forms_form_info', $event_info);
 
