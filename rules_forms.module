@@ -157,42 +157,128 @@ function rules_forms_element_properties($type = NULL) {
 
 /**
  * Implements hook_rules_forms_element_property_info().
+ *
+ * Defines an array of form element types that can be accessed
+ * in Rules Forms rules and their property info as required by
+ * hook_entity_property_info(). This data is used as property
+ * info for the individual elements of a form depending on the
+ * form element's type. Any element types not listed here will
+ * not be accessible in the Rules data selector.
  */
 function rules_forms_rules_forms_element_property_info() {
   $common = array(
-    '#access' => array('type' => 'boolean', 'label' => 'access'),
-    '#description' => array('type' => 'text', 'label' => 'description'),
-    '#disabled' => array('type' => 'boolean', 'label' => 'disabled'),
-    '#prefix' => array('type' => 'text', 'label' => 'prefix'),
-    '#suffix' => array('type' => 'text', 'label' => 'suffix'),
-    '#title' => array('type' => 'text', 'label' => 'title'),
-    '#weight' => array('type' => 'integer', 'label' => 'weight'),
+    '#access' => array(
+      'type' => 'boolean',
+      'label' => 'access',
+      'description' => 'Whether the element is accessible or not; when FALSE, the element is not rendered and the user submitted value is not taken into consideration.',
+    ),
+    '#description' => array(
+      'type' => 'text',
+      'label' => 'description',
+      'description' => 'The description of the form element.',
+    ),
+    '#disabled' => array(
+      'type' => 'boolean',
+      'label' => 'disabled',
+      'description' => 'Disables (greys out) a form input element.',
+    ),
+    '#prefix' => array(
+      'type' => 'text',
+      'label' => 'prefix',
+      'description' => 'Text or markup to include before the form element.',
+    ),
+    '#suffix' => array(
+      'type' => 'text',
+      'label' => 'suffix',
+      'description' => 'Text or markup to include after the form element.',
+    ),
+    '#title' => array(
+      'type' => 'text',
+      'label' => 'title',
+      'description' => 'The title of the form element.',
+    ),
+    '#weight' => array(
+      'type' => 'integer',
+      'label' => 'weight',
+      'description' => 'Used to sort the list of form elements before being output; lower numbers appear before higher numbers.',
+    ),
   );
 
   $field = array(
-    '#default_value' => array('type' => 'text', 'label' => 'default value'),
-    '#field_prefix' => array('type' => 'text', 'label' => 'field prefix'),
-    '#field_suffix' => array('type' => 'text', 'label' => 'field suffix'),
+    '#default_value' => array(
+      'type' => 'text',
+      'label' => 'default value',
+      'description' => 'The value of the form element that will be displayed or selected initially if the form has not been submitted yet.',
+    ),
+    '#field_prefix' => array(
+      'type' => 'text',
+      'label' => 'field prefix',
+      'description' => 'Text or code that is placed directly in front of the textfield.',
+    ),
+    '#field_suffix' => array(
+      'type' => 'text',
+      'label' => 'field suffix',
+      'description' => 'Text or code that is placed directly after the textfield.',
+    ),
   );
 
   $elements = array();
   $elements['fieldset'] = $common + array(
-    '#collapsible' => array('type' => 'boolean', 'label' => 'collapsible'),
-    '#collapsed' => array('type' => 'boolean', 'label' => 'collapsed'),
+    '#collapsible' => array(
+      'type' => 'boolean',
+      'label' => 'collapsible',
+      'description' => 'Indicates whether or not the fieldset can be collapsed with JavaScript.',
+    ),
+    '#collapsed' => array(
+      'type' => 'boolean',
+      'label' => 'collapsed',
+      'description' => 'Indicates whether or not the fieldset is collapsed by default.',
+    ),
   );
   $elements['textfield'] = $common + $field;
   $elements['textarea'] = $common + $field;
   $elements['checkbox'] = $common + $field;
   $elements['checkboxes'] = $common + $field + array(
-    '#options' => array('type' => 'text', 'label' => 'options'),
+    '#options' => array(
+      'type' => 'text',
+      'label' => 'options',
+      'description' => 'Selectable options for a form element that allows multiple choices.',
+    ),
   );
   $elements['radio'] = $common + $field;
   $elements['radios'] = $common + $field + array(
-    '#options' => array('type' => 'text', 'label' => 'options'),
+    '#options' => array(
+      'type' => 'text',
+      'label' => 'options',
+      'description' => 'Selectable options for a form element that allows multiple choices.',
+    ),
   );
   $elements['select'] = $common + $field + array(
-    '#multiple' => array('type' => 'boolean', 'label' => 'allow multiple'),
-    '#options' => array('type' => 'text', 'label' => 'options'),
+    '#multiple' => array(
+      'type' => 'boolean',
+      'label' => 'allow multiple',
+      'description' => 'Indicates whether the user may select more than one item.',
+    ),
+    '#options' => array(
+      'type' => 'text',
+      'label' => 'options',
+      'description' => 'Selectable options for a form element that allows multiple choices.',
+    ),
+  );
+  $elements['button'] = $elements['submit'] = $common + array(
+    '#value' => array(
+      'type' => 'text',
+      'label' => 'label',
+      'description' => 'The label text of the form element.',
+    ),
+  );
+  $elements['item'] = $common;
+  $elements['value'] = array(
+    '#value' => array(
+      'type' => 'text',
+      'label' => 'value',
+      'description' => 'A hidden value.',
+    ),
   );
 
   $defaults = array(
@@ -205,6 +291,11 @@ function rules_forms_rules_forms_element_property_info() {
       $elements[$key][$property] += $defaults;
     }
   }
+
+  // Value fields are not settable.
+  unset($elements['value']['#value']['setter callback']);
+  unset($elements['button']['#description'], $elements['submit']['#description'], $elements['item']['#disabled']);
+
   return $elements;
 }
 
