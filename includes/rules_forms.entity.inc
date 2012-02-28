@@ -1,9 +1,22 @@
 <?php
 
 /**
+ * Defines an interface for returning a reference to the internal
+ * form data array.
+ */
+interface RulesFormsArrayAccess extends ArrayAccess {
+
+  /**
+   * Returns a reference to the internal form data array.
+   */
+  public function &getArray();
+
+}
+
+/**
  * Defines an entity class for wrapping form data.
  */
-class RulesFormsArrayEntity extends Entity implements ArrayAccess {
+class RulesFormsArrayEntity extends Entity implements RulesFormsArrayAccess {
 
   public $form_id, $form_data;
 
@@ -14,8 +27,8 @@ class RulesFormsArrayEntity extends Entity implements ArrayAccess {
    * @param array $form_data
    *   The form or form_state array.
    */
-  public function __construct($form_id, &$form_data) {
-    $this->entityType = 'form';
+  public function __construct($type, $form_id, &$form_data) {
+    $this->entityType = $type;
     $this->form_id = $form_id;
     $this->form_data = &$form_data;
     $this->setUp();

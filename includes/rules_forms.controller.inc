@@ -77,10 +77,6 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_condition_element_value',
-      'callbacks' => array(
-        'access' => 'rules_forms_integration_access',
-        'form_alter' => 'rules_forms_element_form_alter',
-      ),
     );
     $conditions['rules_forms_element_changed'] = array(
       'label' => t('Form element value has changed'),
@@ -96,10 +92,6 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_condition_element_changed',
-      'callbacks' => array(
-        'access' => 'rules_forms_integration_access',
-        'form_alter' => 'rules_forms_element_form_alter',
-      ),
     );
     $conditions['rules_forms_button_clicked'] = array(
       'label' => t('Form button was clicked'),
@@ -111,10 +103,6 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_condition_button_clicked',
-      'callbacks' => array(
-        'access' => 'rules_forms_integration_access',
-        'form_alter' => 'rules_forms_element_form_alter',
-      ),
     );
   return $conditions;
   }
@@ -124,15 +112,30 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
    */
   public static function actionInfo() {
     $actions = array();
-    $actions['rules_forms_set_property'] = array(
+    $actions['rules_forms_property_set'] = array(
       'label' => t('Set a property of an element in the form'),
       'group' => 'Rules Forms',
       'parameter' => array(
-        'form' => array('type' => 'form', 'label' => t('Form')),
+        'data' => array(
+          'type' => '*',
+          'label' => t('Form'),
+          'restriction' => 'selector',
+          'description' => t('Select the form element property to modify. You can traverse the form structure using the data selector. Element properties are prefixed by a hash mark (#).'),
+          'wrapped' => TRUE,
+          'allow null' => TRUE,
+        ),
+        'value' => array(
+          'type' => '*',
+          'label' => t('Value'),
+          'description' => t('The new value to set for the specified data.'),
+          'allow null' => TRUE,
+          'optional' => TRUE,
+        ),
       ),
-      'base' => 'rules_forms_action_set_property',
+      'base' => 'rules_action_data_set',
       'callbacks' => array(
-        'access' => 'rules_forms_integration_access',
+        'validate' => 'rules_forms_action_property_set_validate',
+        'info_alter' => 'rules_forms_action_property_set_info_alter',
       ),
     );
     $actions['rules_forms_set_error'] = array(
@@ -148,7 +151,6 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_action_set_error',
-      'access callback' => 'rules_forms_integration_access',
     );
     $actions['rules_forms_redirect'] = array(
       'label' => t('Set the redirect target of the form'),
@@ -160,7 +162,6 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         'fragment' => array('type' => 'text', 'label' => t('Fragment'), 'optional' => TRUE),
       ),
       'base' => 'rules_forms_action_redirect',
-      'access callback' => 'rules_forms_integration_access',
       'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
     );
     return $actions;

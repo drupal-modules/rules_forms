@@ -13,43 +13,39 @@ function rules_forms_schema() {
   $schema['rules_forms'] = array(
     'description' => 'Rules Forms active forms.',
     'fields' => array(
-      'fid' => array(
-        'description' => 'The unique identifier of the form for internal referencing of data.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
       'form_id' => array(
         'description' => 'The form ID of the active form.',
         'type' => 'varchar',
+        'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'label' => array(
         'description' => 'The human-readable label of the form.',
         'type' => 'varchar',
+        'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'properties' => array(
         'description' => 'Serialized information about form properties.',
-        'type' => 'varchar',
-        'not null' => TRUE,
-        'default' => '',
+        'type' => 'text',
+        'size' => 'medium',
       ),
       'rebuild' => array(
-        'description' => 'Indicates whether the form property info needs to be rebuilt.',
+        'description' => 'Indicates whether form element property information needs to be rebuilt.',
         'type' => 'int',
         'size' => 'tiny',
-        'not null' => TRUE,
         'default' => 0,
       ),
     ),
-    'primary key' => array('fid'),
+    'primary key' => array('form_id'),
     'unique keys' => array(
-      'fid' => array('fid'),
+      'form_id' => array('form_id'),
     ),
   );
+  $schema['cache_rules_forms'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_rules_forms']['description'] = 'Cache table for Rules Forms form configurations.';
   return $schema;
 }
 
@@ -72,7 +68,7 @@ function rules_forms_install() {
  * Implements hook_uninstall().
  */
 function rules_forms_uninstall() {
-  variable_del('rules_forms_form_info');
+  variable_del('rules_forms_rebuild_needed');
 }
 
 /**
@@ -105,4 +101,11 @@ function rules_forms_update_7103() {
   $form_info = variable_get('rules_forms_event_info', array());
   variable_set('rules_forms_form_info', $form_info);
   variable_del('rules_forms_event_info');
+}
+
+/**
+ * Delete variables used in Rules Forms Support 7.x-1.x.
+ */
+function rules_forms_update_7200() {
+  variable_del('rules_forms_form_info');
 }

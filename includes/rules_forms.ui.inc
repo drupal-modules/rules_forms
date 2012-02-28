@@ -11,18 +11,18 @@ abstract class RulesFormsDataUI extends RulesDataUI implements RulesDataDirectIn
    * Provides the default mode.
    */
   public static function getDefaultMode() {
-    return 'input';
+    return 'selector';
   }
   
   /**
    * Provides the default form.
    */
-  public static function defaultForm($name, $info, $settings, $title, $type = 'select') {
+  public static function defaultForm($name, $info, $settings, $title, $type = 'selector') {
     $form[$name] = array(
-        '#type' => $type,
-        '#title' => $title,
-        '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
-        '#required' => empty($info['optional']),
+      '#type' => $type,
+      '#title' => $title,
+      '#default_value' => isset($settings[$name]) ? $settings[$name] : NULL,
+      '#required' => empty($info['optional']),
     );
     return $form;
   }
@@ -35,6 +35,44 @@ abstract class RulesFormsDataUI extends RulesDataUI implements RulesDataDirectIn
       'content' => array('#markup' => check_plain($value)),
       '#attributes' => array('class' => array('rules-forms-parameter')),
     );
+  }
+
+}
+
+class RulesFormsFormDataUI extends RulesFormsDataUI {
+  
+  /**
+   * Returns a select list with options including only available elements.
+   */
+  public static function inputForm($name, $info, $settings, RulesPlugin $element) {
+    $options = $element->availableVariables();
+    foreach ($options as $key => $value) {
+      if ($key !== 'form') {
+        unset($options[$key]);
+      }
+    }
+    $form = parent::defaultForm($name, $info, $settings);
+    $form[$name]['#options'] = $options;
+    return $form;
+  }
+
+}
+
+class RulesFormsFormStateDataUI extends RulesFormsDataUI {
+  
+  /**
+   * Returns a select list with options including only available elements.
+   */
+  public static function inputForm($name, $info, $settings, RulesPlugin $element) {
+    $options = $element->availableVariables();
+    foreach ($options as $key => $value) {
+      if ($key !== 'form_state') {
+        unset($options[$key]);
+      }
+    }
+    $form = parent::defaultForm($name, $info, $settings);
+    $form[$name]['#options'] = $options;
+    return $form;
   }
 
 }

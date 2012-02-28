@@ -5,8 +5,13 @@
  * Evaluation functions for Rules Forms module.
  */
 
-function rules_forms_action_set_property($element, $value) {
-  
+/**
+ * Info alter callback for the property_set action.
+ * Load the Rules callback.
+ */
+function rules_forms_action_property_set_info_alter(&$element_info, $element) {
+  module_load_include('inc', 'rules', 'modules/data.eval');
+  rules_action_data_set_info_alter($element_info, $element);
 }
 
 /**
