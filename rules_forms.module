@@ -535,6 +535,7 @@ function rules_forms_build_element_property_info($form, &$form_properties, &$for
       }
       else {
         $form_state_properties[$key]['type'] = 'text';
+        $form_state_properties[$key]['form element property'] = TRUE;
         $form_state_arg = &$form_state_properties;
       }
       rules_forms_build_element_property_info($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);

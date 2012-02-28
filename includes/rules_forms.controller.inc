@@ -54,19 +54,24 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
    */
   public static function conditionInfo() {
     $conditions = array();
-    $conditions['rules_forms_element_value'] = array(
-      'label' => t('Form element has value'),
+    $conditions['rules_forms_element_has_value'] = array(
+      'label' => t('Form element property has value'),
       'group' => 'Rules Forms',
       'parameter' => array(
-        'form' => array(
-          'type' => 'form',
-          'label' => t('Form'),
+        'data' => array(
+          'type' => '*',
+          'label' => t('Form property'),
+          'description' => t('Select the form element property to evaluate. You can traverse the form structure using the data selector. Element properties are prefixed by a hash mark (#).'),
+          'restriction' => 'selector',
+          'wrapped' => TRUE,
+          'allow null' => TRUE,
         ),
         'value' => array(
-          'type' => 'form_value',
-          'label' => t('Value(s)'),
-          'optional' => TRUE,
+          'type' => '*',
+          'label' => t('Value'),
           'description' => t('Value(s) assigned to the form element. If the form element allows multiple values, enter one value per line.'),
+          'allow null' => TRUE,
+          'optional' => TRUE,
         ),
         'regex' => array(
           'type' => 'boolean',
@@ -77,6 +82,10 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_condition_element_value',
+      'callbacks' => array(
+        'validate' => 'rules_forms_action_property_set_validate',
+        'form_alter' => 'rules_action_property_value_form_alter',
+      ),
     );
     $conditions['rules_forms_element_changed'] = array(
       'label' => t('Form element value has changed'),

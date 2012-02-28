@@ -45,6 +45,42 @@ function rules_forms_rules_data_info_alter(&$data_info) {
 }
 
 /**
+ * Form alter callback for the data_set action.
+ */
+function rules_action_property_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
+  if (!empty($options['init']) && !isset($form_state['rules_element_step'])) {
+    $form['negate']['#access'] = FALSE;
+    unset($form['parameter']['value']);
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Continue'),
+      '#limit_validation_errors' => array(array('parameter', 'data')),
+      '#submit' => array('rules_form_submit_rebuild'),
+    );
+    $form_state['rules_element_step'] = 'data_value';
+    // Clear the parameter mode for the value parameter, so its gets the proper
+    // default value based upon the type of the the selected data on rebuild.
+    unset($form_state['parameter_mode']['value']);
+  }
+  else {
+    // Change the data parameter to be not editable.
+    $form['parameter']['data']['settings']['#access'] = FALSE;
+    // TODO: improve display
+    $form['parameter']['data']['info'] = array(
+      '#prefix' => '<p>',
+      '#markup' => t('<strong>Selected data:</strong> %selector', array('%selector' => $element->settings['data:select'])),
+      '#suffix' => '</p>',
+    );
+    $type = $form['parameter']['value']['settings']['value']['#type'];
+    if ($type != 'textfield' && $type != 'textarea') {
+      $form['parameter']['regex']['#access'] = FALSE;
+      $form['parameter']['regex']['settings']['regex']['#type'] = 'value';
+      $form['parameter']['regex']['settings']['regex']['#value'] = 0;
+    }
+  }
+}
+
+/**
  * Custom validation callback for the data set action.
  */
 function rules_forms_action_property_set_validate(RulesAbstractPlugin $element) {
