@@ -47,7 +47,7 @@ function rules_forms_rules_data_info_alter(&$data_info) {
 /**
  * Form alter callback for the data_set action.
  */
-function rules_action_property_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
+function rules_forms_property_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
   if (!empty($options['init']) && !isset($form_state['rules_element_step'])) {
     $form['negate']['#access'] = FALSE;
     unset($form['parameter']['value']);
@@ -81,18 +81,72 @@ function rules_action_property_value_form_alter(&$form, &$form_state, $options, 
 }
 
 /**
- * Custom validation callback for the data set action.
+ * Validation callback for get property actions.
  */
-function rules_forms_action_property_set_validate(RulesAbstractPlugin $element) {
+function rules_forms_property_get_validate(RulesAbstractPlugin $element) {
+  rules_forms_property_validate($element, 'get');
+}
+
+/**
+ * Validation callback for set property actions.
+ */
+function rules_forms_property_set_validate(RulesAbstractPlugin $element) {
+  rules_forms_property_validate($element, 'set');
+}
+
+/**
+ * Validation callback for determining whether selected data
+ * is a form element property.
+ */
+function rules_forms_property_validate(RulesAbstractPlugin $element, $action) {
   $element->settings += array('data:select' => NULL);
   $info = $element->applyDataSelector($element->settings['data:select'])->info();
   if (strpos($element->settings['data:select'], ':') !== FALSE) {
-    if (empty($info['setter callback'])) {
-      throw new RulesIntegrityException(t('The selected data property doesn\'t support writing.'), array($element, 'parameter', 'data'));
+    // 'getter' or 'setter' callback.
+    if (empty($info[$action .'ter callback'])) {
+      throw new RulesIntegrityException(t('The selected data property doesn\'t support '. ($action == 'set' ? 'writing' : 'reading') .'.'), array($element, 'parameter', 'data'));
     }
-    // @TODO Add the key 'rules forms element property' to property info.
-    elseif (!empty($info['form element property'])) {
+    // Form element properties should have the 'form property' set.
+    // This is automatically set on the return values of
+    // hook_rules_forms_element_property_info() implementations.
+    elseif (empty($info['form property'])) {
       throw new RulesIntegrityException(t('The selected data property is not a form element property.', array($element, 'parameter', 'data')));
+    }
+  }
+}
+
+/**
+ * Validation callback for determining whether selected data
+ * is a form element.
+ */
+function rules_forms_element_validate(RulesAbstractPlugin $element) {
+  $element->settings += array('data:select' => NULL);
+  $info = $element->applyDataSelector($element->settings['data:select'])->info();
+  if (strpos($element->settings['data:select'], ':') !== FALSE) {
+    if (empty($info['getter callback'])) {
+      throw new RulesIntegrityException(t('The selected data property doesn\'t support reading.'), array($element, 'parameter', 'data'));
+    }
+    // Form element structures will have the 'form element' key set.
+    elseif ($info['type'] !== 'struct' || empty($info['form element'])) {
+      throw new RulesIntegrityException(t('The selected data property is not a form element.', array($element, 'parameter', 'data')));
+    }
+  }
+}
+
+/**
+ * Validation callback for determining whether selected data
+ * is a form value.
+ */
+function rules_forms_value_validate(RulesAbstractPlugin $element) {
+  $element->settings += array('data:select' => NULL);
+  $info = $element->applyDataSelector($element->settings['data:select'])->info();
+  if (strpos($element->settings['data:select'], ':') !== FALSE) {
+    if (empty($info['getter callback'])) {
+      throw new RulesIntegrityException(t('The selected data property doesn\'t support reading.'), array($element, 'parameter', 'data'));
+    }
+    // Form value properties will have the 'form value' key set.
+    elseif (empty($info['form value'])) {
+      throw new RulesIntegrityException(t('The selected data property is not a form value.', array($element, 'parameter', 'data')));
     }
   }
 }
