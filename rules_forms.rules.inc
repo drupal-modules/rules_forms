@@ -27,6 +27,19 @@ function rules_forms_rules_action_info() {
 }
 
 /**
+ * Implements hook_rules_data_info().
+ */
+function rules_forms_rules_data_info() {
+  $data_info = array();
+  $data_info['form_element'] = array(
+    'label' => t('Form element'),
+    'group' => t('Rules Forms'),
+    'is wrapped' => TRUE,
+    'parent' => 'struct',
+  );
+}
+
+/**
  * Implements hook_rules_data_info_alter().
  */
 function rules_forms_rules_data_info_alter(&$data_info) {
@@ -46,6 +59,7 @@ function rules_forms_rules_data_info_alter(&$data_info) {
 
 /**
  * Form alter callback for the data_set action.
+ * This function was largely taken from Rules.
  */
 function rules_forms_property_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
   if (!empty($options['init']) && !isset($form_state['rules_element_step'])) {
@@ -65,7 +79,6 @@ function rules_forms_property_value_form_alter(&$form, &$form_state, $options, R
   else {
     // Change the data parameter to be not editable.
     $form['parameter']['data']['settings']['#access'] = FALSE;
-    // TODO: improve display
     $form['parameter']['data']['info'] = array(
       '#prefix' => '<p>',
       '#markup' => t('<strong>Selected data:</strong> %selector', array('%selector' => $element->settings['data:select'])),

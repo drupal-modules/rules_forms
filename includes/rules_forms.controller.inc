@@ -270,7 +270,7 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
       'parameter' => array(
         'data' => array(
           'type' => '*',
-          'label' => t('Form property'),
+          'label' => t('Form element property'),
           'description' => t('Select the form element property to evaluate. You can traverse the form structure using the data selector. Element properties are prefixed by a hash mark (#).'),
           'restriction' => 'selector',
           'wrapped' => TRUE,
@@ -324,17 +324,17 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
       'label' => t('Form button was clicked'),
       'group' => 'Rules Forms',
       'parameter' => array(
-        'data' => array(
-          'type' => '*',
-          'label' => t('Form button'),
-          'description' => t('Select the form element property to evaluate. You can traverse the form structure using the data selector. Element properties are prefixed by a hash mark (#).'),
-          'restriction' => 'selector',
-          'wrapped' => TRUE,
-          'allow null' => TRUE,
-        ),
         'form_state' => array(
           'type' => 'form_state',
           'label' => t('Form state'),
+        ),
+        'data' => array(
+          'type' => 'struct',
+          'label' => t('Form button'),
+          'description' => t('Select the form element to evaluate. You can traverse the form structure using the data selector. Element properties are prefixed by a hash mark (#).'),
+          'restriction' => 'selector',
+          'wrapped' => TRUE,
+          'allow null' => TRUE,
         ),
       ),
       'base' => 'rules_forms_condition_button_clicked',
@@ -377,7 +377,14 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
       'label' => t('Set an error on the form'),
       'group' => 'Rules Forms',
       'parameter' =>  array(
-        'form' => array('type' => 'form', 'label' => t('Form')),
+        'data' => array(
+          'type' => 'struct',
+          'label' => t('Targeted element'),
+          'restriction' => 'selector',
+          'description' => t('Select the form element to target (if any).'),
+          'wrapped' => TRUE,
+          'allow null' => TRUE,
+        ),
         'message' => array(
           'type' => 'text',
           'label' => t('Message'),
@@ -386,15 +393,32 @@ class RulesFormsRulesController extends EntityDefaultRulesController {
         ),
       ),
       'base' => 'rules_forms_action_set_error',
+      'callbacks' => array(
+        'validate' => 'rules_forms_element_validate',
+      ),
     );
     $actions['rules_forms_redirect'] = array(
       'label' => t('Set the redirect target of the form'),
       'group' => 'Rules Forms',
       'parameter' => array(
-        'form_state' => array('type' => 'form_state', 'label' => t('Form state')),
-        'path' => array('type' => 'text', 'label' => t('Path')),
-        'query' => array('type' => 'text', 'label' => t('Query'), 'optional' => TRUE),
-        'fragment' => array('type' => 'text', 'label' => t('Fragment'), 'optional' => TRUE),
+        'form_state' => array(
+          'type' => 'form_state',
+          'label' => t('Form state'),
+        ),
+        'path' => array(
+          'type' => 'text',
+          'label' => t('Path'),
+        ),
+        'query' => array(
+          'type' => 'text',
+          'label' => t('Query'),
+          'optional' => TRUE,
+        ),
+        'fragment' => array(
+          'type' => 'text',
+          'label' => t('Fragment'),
+          'optional' => TRUE,
+        ),
       ),
       'base' => 'rules_forms_action_redirect',
       'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),

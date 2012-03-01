@@ -52,7 +52,7 @@ function rules_forms_condition_element_value($wrapper, $value, $regex, $settings
  * @param ArrayObject $form
  *   A reference to the form array of the form for which the event
  *   was triggered.
- * @param ArrayObject $form_state
+ * @param RulesFormsFormStateWrapper $form_state
  *   A reference to the form state array of the form for which the
  *   event was triggered.
  * @param string $element
@@ -63,17 +63,19 @@ function rules_forms_condition_element_value($wrapper, $value, $regex, $settings
  *   Indicates whether the element's value has changed since the
  *   form was built.
  */
-function rules_forms_condition_element_changed($form, $form_state, $element) {
+function rules_forms_condition_element_changed($form_element, $form_state, $settings, $state, $element) {
   $form_id = $form['form_id']['#value'];
+  $form_values = $form_state->value();
+  $form_values = $form_values['values'];
 
-  if (isset($_SESSION['rules_forms_form_values'][$form_id])) {
+  if (isset($_SESSION['rules_forms_form_values'][$form_id]) && strpos($settings['data:select'], ':') !== FALSE) {
     // Get the build form values and the element name being validated.
-    $element_name = substr($element, strpos($element, ':') + 1);
+    $element_name = substr($settings['data:select'], strpos($settings['data:select'], ':') + 1);
     $build_values = $_SESSION['rules_forms_form_values'][$form_id];
 
     // Ensure that form values are set. This will prevent the condition from being evaluated during build.
-    if (isset($build_values[$element]) && isset($form_state['values']) && isset($form_state['values'][$element_name])) {
-      return $build_values[$element] !== $form_state['values'][$element_name];
+    if (isset($build_values[$element_name]) && isset($form_state['values']) && isset($form_state['values'][$element_name])) {
+      return $build_values[$element_name] !== $form_state['values'][$element_name];
     }
   }
   return FALSE;
@@ -82,23 +84,21 @@ function rules_forms_condition_element_changed($form, $form_state, $element) {
 /**
  * Condition: Form button was clicked.
  *
- * @param ArrayObject $form
- *   A reference to the form array of the form for which the event
- *   was triggered.
- * @param ArrayObject $form_state
+ * @param RulesFormsFormStateWrapper $form_state
  *   A reference to the form state array of the form for which the
  *   event was triggered.
- * @param string $element
+ * @param EntityStructureWrapper $form_element
  *   The element ID of the element being checked in the form of
  *   element_type:element_id.
  *
  * @return bool
  *   Indicates whether the indicated button was clicked.
  */
-function rules_forms_condition_button_clicked($form, $form_state, $element) {
+function rules_forms_condition_button_clicked($form_state, $form_element, $settings, $state, $element) {
+  $form_state = $form_state->value();
+  $form_element = $form_element->value();
   if (isset($form_state['triggering_element'])) {
     $button = $form_state['triggering_element'];
-    $form_element = _rules_forms_get_element($form, $element);
     if (isset($form_element['#name']) && isset($button['#name'])) {
       return $form_element['#name'] === $button['#name'];
     }
@@ -130,7 +130,7 @@ function rules_forms_equal_array_values($array1, $array2) {
 /**
  * Action: Set the redirect target.
  *
- * @param ArrayObject $form_state
+ * @param RulesFormsFormStateWrapper $form_state
  *   A reference to the form state array of the form for which the
  *   event was triggered.
  * @param string $path
@@ -141,6 +141,7 @@ function rules_forms_equal_array_values($array1, $array2) {
  *   A fragement string for use in drupal_goto().
  */
 function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
+  $form_state = $form_state->value();
   // We manually check the form to see if redirect is okay.
   // Setting $form_state['redirect'] has proven to be unreliable.
   if (!empty($form_state['programmed']) || !empty($form_state['rebuild']) || !empty($form_state['no_redirect'])) {
@@ -158,28 +159,21 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
 /**
  * Action: Set form error.
  *
- * @param ArrayObject $form
- *   A reference to the form array of the form for which the event
- *   was triggered.
- * @param string $element
- *   The element ID of the element being checked in the form of
- *   element_type:element_id.
+ * @param EntityStructureWrapper
+ *   The wrapped form element on which to set the error, if any.
  * @param string $message
  *   The error message to set on the form element.
  */
-function rules_forms_action_set_error($form, $element, $message) {
+function rules_forms_action_set_error($wrapper, $message, $settings, $state, $element) {
+  // Use the data selector structure to target the form element.
+  $data = $settings['data:select'];
   if (strpos($element, ':') !== FALSE) {
-    $form_element = &_rules_forms_get_element($form, $element);
-
-    // Remove the element type information.
-    $element = substr($element, strpos($element, ':') + 1);
-
-    if (isset($form_element['#parents'])) {
-      $element = implode('][', $form_element['#parents']);
-    }
-    else {
-      $element = str_replace(':', '][', $element);
-    }
+    // Strip off the 'form' portion of selector data.
+    $element = substr($data, strpos($data, ':') + 1);
+    $element = str_replace(':', '][', $element);
+  }
+  else {
+    $element = '';
   }
   form_set_error($element, $message);
 }
