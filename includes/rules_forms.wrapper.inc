@@ -3,22 +3,69 @@
 /**
  * Provides a wrapper for form array entities.
  */
-class RulesFormsDataWrapper extends EntityStructureWrapper {}
+class RulesFormsFormDataWrapper extends EntityStructureWrapper {
+
+  protected $formId;
+
+  /**
+   * Overrides EntityStructureWrapper::__construct().
+   */
+  public function __construct($type, RulesFormsArrayEntity $data, $info = array()) {
+    $this->formId = $info['form_id'];
+    $property_info = entity_get_property_info();
+    $info += array(
+      'form_id' => $this->formId,
+      'property info' => $property_info['form']['bundles'][$this->formId]['properties'],
+    );
+    parent::__construct($type, $data, $info);
+  }
+
+  /**
+   * Overrides EntityStructureWrapper::get() to ensure that Rules Forms
+   * wrappers are loaded in Rules Forms events.
+   *
+   * @return
+   *   An instance of EntityMetadataWrapper.
+   */
+  public function get($name) {
+    // Look it up in the cache if possible.
+    if (!array_key_exists($name, $this->cache)) {
+      if ($info = $this->getPropertyInfo($name)) {
+        $info += array(
+          'form type' => '',
+          'parent' => $this,
+          'name' => $name,
+          'langcode' => $this->langcode,
+          'property defaults' => array(),
+        );
+        $info['property defaults'] += $this->info['property defaults'];
+        $this->cache[$name] = rules_forms_metadata_wrapper($info['form type'], NULL, $info);
+      }
+      else {
+        throw new EntityMetadataWrapperException('There is no property ' . check_plain($name) . " for this entity.");
+      }
+    }
+    return $this->cache[$name];
+  }
+
+}
+
+/**
+ * Provides a wrapper for form elements.
+ */
+class RulesFormsElementWrapper extends EntityStructureWrapper {}
+
+/**
+ * Provides a wrapper for element attributes.
+ */
+class RulesFormsAttributeWrapper extends EntityValueWrapper {}
 
 /**
  * Provides a wrapper for active form information.
  */
 class RulesFormsMetadataWrapper {
 
-  protected $form_id, $info;
-
-  /**
-   * @var array
-   *   Stores element property info defined in hook_rules_forms_element_property_info().
-   *
-   * @see rules_forms_element_property_info().
-   */
-  protected static $property_info;
+  protected $type, $info;
 
   /**
    * Constructor adds default values to the $info array.
@@ -26,36 +73,22 @@ class RulesFormsMetadataWrapper {
    * @param array $info
    *   An array of information related to an active Rules Forms form.
    */
-  public function __construct(array $info) {
+  public function __construct($type, array $info = array()) {
+    $this->type = $type;
     $info += array(
-      'form_id' => '',
+      'id' => '',
       'label' => '',
       'properties' => array('form' => array(), 'form_state' => array()),
       'settings' => array(),
-      'rebuild' => TRUE,
     );
-    $this->form_id = $info['form_id'];
     $this->info = $info;
-    self::init();
-  }
-
-  protected static function init() {
-    if (!isset(self::$property_info)) {
-      // Note: This first call to retrieve element property info is a hacky fix to
-      // that function's return. When calling the function right after the cache
-      // is cleared, a small and invalid portion of the property info array is
-      // returned. We have to call it first here to ensure the proper array is
-      // returned in rules_forms_build_element_property_info().
-      rules_forms_element_property_info();
-      self::$property_info = rules_forms_element_property_info();
-    }
   }
 
   /**
    * Returns the form ID.
    */
   public function getIdentifier() {
-    return $this->form_id;
+    return $this->info['id'];
   }
 
   /**
@@ -127,12 +160,53 @@ class RulesFormsMetadataWrapper {
   }
 
   /**
+   * Returns property info for the form.
+   *
+   * @param string $key
+   *   An optional string identifying the specific property info to return.
+   *
+   * @return array
+   *   An array of property info to be used in hook_entity_property_info().
+   *   Arrays are keyed by form and form_state keys, each containing properties
+   *   of the form and form_state bundle that is keyed by the form ID.
+   */
+  public function getPropertyInfo($key = NULL) {
+    if ($key !== NULL) {
+      return isset($this->info['properties'][$key]) ? $this->info['properties'][$key] : array();
+    }
+    return $this->info['properties'];
+  }
+
+}
+
+/**
+ * Metadata wrapper for form and form_state entity data.
+ */
+class RulesFormsFormWrapper extends RulesFormsMetadataWrapper {
+
+  protected $formId;
+
+  protected static $propertyInfo;
+  
+  /**
+   * Constructor: Sets the form ID property.
+   */
+  public function __construct($type, array $info = array()) {
+    $info += array(
+      'form_id' => '',
+      'rebuild' => TRUE,
+    );
+    $this->formId = $info['id'] = $info['form_id'];
+    parent::__construct($type, $info);
+  }
+
+  /**
    * Returns a boolean value indicating whether property info needs to be rebuilt.
    */
   public function needsRebuild() {
     return !empty($this->info['rebuild']);
   }
-
+  
   /**
    * Rebuilds property info for the form.
    *
@@ -152,19 +226,20 @@ class RulesFormsMetadataWrapper {
           'type' => 'struct',
           'label' => 'values',
           'computed' => TRUE,
-          'getter callback' => 'rules_forms_get_property',
+          'getter callback' => 'rules_forms_get_attribute',
           'auto creation' => 'rules_forms_create_structure',
           'property info' => array(),
         ),
       ),
     );
+    self::$propertyInfo = rules_forms_element_property_info();
     self::buildPropertyInfo($form, $this->info['properties']['form'], $this->info['properties']['form_state']['values']['property info']);
     $this->info['rebuild'] = FALSE;
   }
-
+  
   /**
    * Builds form element property info.
-   * 
+   *
    * This data is used in hook_entity_property_info() to identify the
    * form structure in the form and form_state entity types. This method
    * does a recursive call on form element children to map the entire
@@ -190,58 +265,38 @@ class RulesFormsMetadataWrapper {
    */
   protected static function buildPropertyInfo($form, &$form_properties, &$form_state_properties, $tree = FALSE) {
     foreach (element_children($form) as $key) {
-      if (isset($form[$key]['#type']) && array_key_exists($form[$key]['#type'], self::$property_info)) {
+      if (isset($form[$key]['#type']) && array_key_exists($form[$key]['#type'], self::$propertyInfo)) {
         $defaults = array(
-          'label' => isset($form[$key]['#title']) ? "{$form[$key]['#type']}: {$form[$key]['#title']}" : $form[$key]['#type'],
+          'label' => isset($form[$key]['#title']) ? self::$propertyInfo[$form[$key]['#type']]['label'] .': '. $form[$key]['#title'] : self::$propertyInfo[$form[$key]['#type']]['label'],
           'computed' => TRUE,
-          'getter callback' => 'rules_forms_get_property',
+          'getter callback' => 'rules_forms_get_attribute',
         );
-
+  
         $form_properties[$key] = $defaults + array(
           'type' => 'struct',
-          'setter callback' => 'rules_forms_set_property',
+          'setter callback' => 'rules_forms_set_attribute',
           'auto creation' => 'rules_forms_create_structure',
-          'form element' => TRUE,
-          'property info' => self::$property_info[$form[$key]['#type']],
+          'form type' => 'element',
+          'property info' => self::$propertyInfo[$form[$key]['#type']]['properties'],
         );
-    
+  
         $is_tree = ($tree == TRUE || !empty($form[$key]['#tree']));
         $form_state_properties[$key] = $defaults;
-    
+  
         // If this is a tree then property info needs to be stored as such.
         $children = element_children($form[$key]);
         if ($is_tree && !empty($children)) {
           $form_state_properties[$key]['type'] = 'struct';
-          $form_state_properties['property info'] = array();
+          $form_state_properties[$key]['property info'] = array();
           $form_state_arg = &$form_state_properties[$key]['property info'];
         }
         else {
           $form_state_properties[$key]['type'] = 'text';
-          $form_state_properties[$key]['form value'] = TRUE;
+          $form_state_properties[$key]['form type'] = 'value';
           $form_state_arg = &$form_state_properties;
         }
         self::buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);
       }
     }
   }
-
-  /**
-   * Returns property info for the form.
-   *
-   * @param string $form
-   *   An optional string identifying the specific property info to return.
-   *   Property info is stored for form and form_state
-   *
-   * @return array
-   *   An array of property info to be used in hook_entity_property_info().
-   *   Arrays are keyed by form and form_state keys, each containing properties
-   *   of the form and form_state bundle that is keyed by the form ID.
-   */
-  public function getPropertyInfo($form = NULL) {
-    if ($form !== NULL) {
-      return isset($this->info['properties'][$form]) ? $this->info['properties'][$form] : array();
-    }
-    return $this->info['properties'];
-  }
-
 }

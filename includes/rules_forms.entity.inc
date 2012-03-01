@@ -18,7 +18,7 @@ interface RulesFormsArrayAccess extends ArrayAccess {
  */
 class RulesFormsArrayEntity extends Entity implements RulesFormsArrayAccess {
 
-  public $form_id, $form_data;
+  public $formId, $formData;
 
   /**
    * Constructor.
@@ -29,8 +29,8 @@ class RulesFormsArrayEntity extends Entity implements RulesFormsArrayAccess {
    */
   public function __construct($type, $form_id, &$form_data) {
     $this->entityType = $type;
-    $this->form_id = $form_id;
-    $this->form_data = &$form_data;
+    $this->formId = $form_id;
+    $this->formData = &$form_data;
     $this->setUp();
   }
 
@@ -39,10 +39,10 @@ class RulesFormsArrayEntity extends Entity implements RulesFormsArrayAccess {
    */
   public function offsetSet($offset, $value) {
     if (is_null($offset)) {
-      $this->form_data[] = $value;
+      $this->formData[] = $value;
     }
     else {
-      $this->form_data[$offset] = $value;
+      $this->formData[$offset] = $value;
     }
   }
 
@@ -50,28 +50,28 @@ class RulesFormsArrayEntity extends Entity implements RulesFormsArrayAccess {
    * @see ArrayAccess::offsetExists()
    */
   public function offsetExists($offset) {
-    return isset($this->form_data[$offset]);
+    return isset($this->formData[$offset]);
   }
 
   /**
    * @see ArrayAccess::offsetUnset()
    */
   public function offsetUnset($offset) {
-    unset($this->form_data[$offset]);
+    unset($this->formData[$offset]);
   }
 
   /**
    * @see ArrayAccess::offsetGet()
    */
   public function offsetGet($offset) {
-    return isset($this->form_data[$offset]) ? $this->form_data[$offset] : NULL;
+    return isset($this->formData[$offset]) ? $this->formData[$offset] : NULL;
   }
 
   /**
    * Returns a reference to the form data array.
    */
   public function &getArray() {
-    return $this->form_data;
+    return $this->formData;
   }
 
 }

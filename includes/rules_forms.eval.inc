@@ -6,27 +6,27 @@
  */
 
 /**
- * Info alter callback for the property_set action.
+ * Info alter callback for the attribute_set action.
  * Load the Rules callback.
  */
-function rules_forms_action_property_set_info_alter(&$element_info, $element) {
+function rules_forms_action_attribute_set_info_alter(&$element_info, $element) {
   module_load_include('inc', 'rules', 'modules/data.eval');
   rules_action_data_set_info_alter($element_info, $element);
 }
 
 /**
- * Condition: Check a form element property value.
+ * Condition: Check a form element attribute value.
  */
-function rules_forms_condition_element_value($wrapper, $value, $regex, $settings, $state, $element) {
+function rules_forms_condition_element_value(EntityMetadataWrappe $wrapper, $value, $regex, $settings, $state, $element) {
   if ($wrapper instanceof EntityMetadataWrapper) {
-    $property_value = $wrapper->value();
+    $attribute_value = $wrapper->value();
     // Perform the comparison with a regular expression if necessary.
     if ($regex) {
       // Allow multiple regular expressions to be run, one on each line.
       // Return FALSE immediately if an expression fails.
       $lines = explode("\r\n", $value);
       foreach ($lines as $line) {
-        $result = preg_match($value, $property_value) == 1;
+        $result = preg_match($value, $attribute_value) == 1;
         if ($result === FALSE) {
           return FALSE;
         }
@@ -35,11 +35,11 @@ function rules_forms_condition_element_value($wrapper, $value, $regex, $settings
     }
 
     // Multiple values come in as array.
-    if (is_array($property_value)) {
+    if (is_array($attribute_value)) {
       $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $property_value);
+      return rules_forms_equal_array_values($lines, $attribute_value);
     }
-    return $property_value === $value;
+    return $attribute_value === $value;
   }
   else {
     return $wrapper === $value;
@@ -63,7 +63,7 @@ function rules_forms_condition_element_value($wrapper, $value, $regex, $settings
  *   Indicates whether the element's value has changed since the
  *   form was built.
  */
-function rules_forms_condition_element_changed($form_element, $form_state, $settings, $state, $element) {
+function rules_forms_condition_element_changed(EntityStructureWrapper $form_element, $form_state, $settings, $state, $element) {
   $form_id = $form['form_id']['#value'];
   $form_values = $form_state->value();
   $form_values = $form_values['values'];
@@ -94,7 +94,7 @@ function rules_forms_condition_element_changed($form_element, $form_state, $sett
  * @return bool
  *   Indicates whether the indicated button was clicked.
  */
-function rules_forms_condition_button_clicked($form_state, $form_element, $settings, $state, $element) {
+function rules_forms_condition_button_clicked($form_state, EntityStructureWrapper $form_element, $settings, $state, $element) {
   $form_state = $form_state->value();
   $form_element = $form_element->value();
   if (isset($form_state['triggering_element'])) {
