@@ -1,24 +1,6 @@
 <?php
 
-/**
- * Provides a wrapper for form array entities.
- */
-class RulesFormsFormDataWrapper extends EntityStructureWrapper {
-
-  protected $formId;
-
-  /**
-   * Overrides EntityStructureWrapper::__construct().
-   */
-  public function __construct($type, RulesFormsArrayEntity $data, $info = array()) {
-    $this->formId = $info['form_id'];
-    $property_info = entity_get_property_info();
-    $info += array(
-      'form_id' => $this->formId,
-      'property info' => $property_info['form']['bundles'][$this->formId]['properties'],
-    );
-    parent::__construct($type, $data, $info);
-  }
+class RulesFormsMetadataWrapper extends EntityStructureWrapper {
 
   /**
    * Overrides EntityStructureWrapper::get() to ensure that Rules Forms
@@ -39,7 +21,7 @@ class RulesFormsFormDataWrapper extends EntityStructureWrapper {
           'property defaults' => array(),
         );
         $info['property defaults'] += $this->info['property defaults'];
-        $this->cache[$name] = rules_forms_metadata_wrapper($info['form type'], NULL, $info);
+        $this->cache[$name] = rules_forms_metadata_wrapper($info['type'], NULL, $info);
       }
       else {
         throw new EntityMetadataWrapperException('There is no property ' . check_plain($name) . " for this entity.");
@@ -51,21 +33,54 @@ class RulesFormsFormDataWrapper extends EntityStructureWrapper {
 }
 
 /**
+ * Provides a wrapper for form array entities.
+ */
+class RulesFormsFormDataWrapper extends RulesFormsMetadataWrapper {
+
+  protected $formId;
+
+  /**
+   * Overrides EntityStructureWrapper::__construct(). Form and form state data
+   * types require an object that implements RulesFormsArrayAccess interface.
+   */
+  public function __construct($type, $data, $info = array()) {
+    if (!is_object($data) || !in_array('RulesFormsArrayAccess', class_implements($data))) {
+      throw new EntityMetadataWrapperException('Form and form state data must be passed as an instance of a class that implements the RulesFormsArrayAccess interface.');
+    }
+    $this->formId = $info['form_id'];
+    $property_info = entity_get_property_info();
+    $info += array(
+      'form_id' => $this->formId,
+      'property info' => $property_info['form']['bundles'][$this->formId]['properties'],
+    );
+    parent::__construct($type, $data, $info);
+  }
+
+}
+
+/**
  * Provides a wrapper for form elements.
  */
-class RulesFormsElementWrapper extends EntityStructureWrapper {}
+class RulesFormsElementWrapper extends RulesFormsMetadataWrapper {}
 
 /**
  * Provides a wrapper for element attributes.
  */
-class RulesFormsAttributeWrapper extends EntityValueWrapper {}
+class RulesFormsAttributeWrapper extends RulesFormsMetadataWrapper {}
 
 /**
- * Provides a wrapper for active form information.
+ * Provides a wrapper for form values.
  */
-class RulesFormsMetadataWrapper {
+class RulesFormsValueWrapper extends EntityValueWrapper {}
 
-  protected $type, $info;
+/**
+ * Metadata wrapper for form and form_state entity data.
+ */
+class RulesFormsFormWrapper {
+
+  protected $type, $info, $formId;
+
+  protected static $propertyInfo;
 
   /**
    * Constructor adds default values to the $info array.
@@ -76,11 +91,13 @@ class RulesFormsMetadataWrapper {
   public function __construct($type, array $info = array()) {
     $this->type = $type;
     $info += array(
-      'id' => '',
+      'form_id' => '',
       'label' => '',
       'properties' => array('form' => array(), 'form_state' => array()),
       'settings' => array(),
+      'rebuild' => TRUE,
     );
+    $this->formId = $info['form_id'];
     $this->info = $info;
   }
 
@@ -88,7 +105,7 @@ class RulesFormsMetadataWrapper {
    * Returns the form ID.
    */
   public function getIdentifier() {
-    return $this->info['id'];
+    return $this->info['form_id'];
   }
 
   /**
@@ -175,29 +192,6 @@ class RulesFormsMetadataWrapper {
       return isset($this->info['properties'][$key]) ? $this->info['properties'][$key] : array();
     }
     return $this->info['properties'];
-  }
-
-}
-
-/**
- * Metadata wrapper for form and form_state entity data.
- */
-class RulesFormsFormWrapper extends RulesFormsMetadataWrapper {
-
-  protected $formId;
-
-  protected static $propertyInfo;
-  
-  /**
-   * Constructor: Sets the form ID property.
-   */
-  public function __construct($type, array $info = array()) {
-    $info += array(
-      'form_id' => '',
-      'rebuild' => TRUE,
-    );
-    $this->formId = $info['id'] = $info['form_id'];
-    parent::__construct($type, $info);
   }
 
   /**

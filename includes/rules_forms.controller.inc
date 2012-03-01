@@ -11,8 +11,9 @@ abstract class RulesFormsMetadataController {
    * @param array $args
    */
   public static function __callStatic($method, array $args) {
-    if (!isset(self::$instance)) {
-      self::$instance = new RulesFormsMetadataController;
+    $class = get_called_class();
+    if (!isset(self::$instance) || get_class(self::$instance) !== $class) {
+      self::$instance = new $class;
     }
     if (method_exists(self::$instance, $method)) {
       return call_user_func_array(array(self::$instance, $method), $args);

@@ -6,15 +6,6 @@
  */
 
 /**
- * Info alter callback for the attribute_set action.
- * Load the Rules callback.
- */
-function rules_forms_action_attribute_set_info_alter(&$element_info, $element) {
-  module_load_include('inc', 'rules', 'modules/data.eval');
-  rules_action_data_set_info_alter($element_info, $element);
-}
-
-/**
  * Condition: Check a form element attribute value.
  */
 function rules_forms_condition_element_value(EntityMetadataWrappe $wrapper, $value, $regex, $settings, $state, $element) {
@@ -125,6 +116,15 @@ function rules_forms_equal_array_values($array1, $array2) {
   $diff1 = array_diff($array1, $array2);
   $diff2 = array_diff($array2, $array1);
   return empty($diff1) && empty($diff2);
+}
+
+/**
+ * Info alter callback for the attribute_set action.
+ * Load the Rules callback.
+ */
+function rules_forms_action_attribute_set_info_alter(&$element_info, $element) {
+  module_load_include('inc', 'rules', 'modules/data.eval');
+  rules_action_data_set_info_alter($element_info, $element);
 }
 
 /**

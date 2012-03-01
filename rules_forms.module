@@ -152,7 +152,7 @@ function rules_forms_element_property_info() {
     'getter callback' => 'rules_forms_get_attribute',
     'setter callback' => 'rules_forms_set_attribute',
     'computed' => TRUE,
-    'form type' => 'property',
+    'form type' => 'attribute',
   );
 
   $common = array(
@@ -320,33 +320,40 @@ function rules_forms_element_property_info() {
  * back to entity_metadata_wrapper() if the data type is not recognized.
  *
  * @param string $type
- *   The type of data being wrapped. Known data types:
- *   - form
- *   - form_state
- *   - element
- *   - attribute
+ *   The type of data.
  *   Note: All other data types will be passed to entity_metadata_wrapper().
  * @param unknown $data
  *   The data to be wrapped.
  * @param array $info
- *   An array of information to wrap. This should include a 'label'.
+ *   An array of information to wrap. This should include a 'form type'
+ *   key that identifies the type of Rules Forms data is being wrapped.
+ *   Possible values:
+ *   - form: A form array in a class that implements RulesFormsArrayAccess.
+ *   - form_state: A form_state array in a class that implements RulesFormsArrayAccess.
+ *   - element: A form element array with key|value pairs being attributes.
+ *   - attribute: A form element attribute whose type depends on property info.
+ *   - value: A form value from the form_state values array.
  *
  * @return EntityMetadataWrapper
  *   The wrapped data object.
  */
 function rules_forms_metadata_wrapper($type, $data, array $info = array()) {
-  switch ($type) {
-    case 'element':
-      return new RulesFormsElementWrapper($type, $data, $info);
-    case 'attribute':
-      return new RulesFormsAttributeWrapper($type, $data, $info);
-    case 'form':
-    case 'form_state':
-      $info += array('form_id' => '');
-      return new RulesFormsFormDataWrapper($type, $data, $info);
-    default:
-      return entity_metadata_wrapper($type, $data, $info);
+  if (in_array($type, array('form', 'form_state'))) {
+    $info += array('form_id' => '');
+    return new RulesFormsFormDataWrapper($type, $data, $info);
   }
+  elseif (!empty($info['form type'])) {
+    if ($type == 'struct' && $info['form type'] == 'element') {
+      return new RulesFormsElementWrapper($type, $data, $info);
+    }
+    elseif ($type == 'struct' && $info['form type'] == 'attribute') {
+      return new RulesFormsAttributeWrapper($type, $data, $info);
+    }
+    elseif ($info['form type'] == 'value') {
+      return new RulesFormsValueWrapper($type, $data, $info);
+    }
+  }
+  return entity_metadata_wrapper($type, $data, $info);
 }
 
 /**
@@ -448,8 +455,13 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   }
 
   // Prepare and wrap form data for passage to Rules.
-  $form_wrapped = rules_forms_metadata_wrapper('form', new RulesFormsArrayEntity('form', $form_id, $form), array('form_id' => $form_id));
-  $form_state_wrapped = rules_forms_metadata_wrapper('form_state', new RulesFormsArrayEntity('form_state', $form_id, $form_state), array('form_id' => $form_id));
+  try {
+    $form_wrapped = rules_forms_metadata_wrapper('form', new RulesFormsArrayEntity('form', $form_id, $form), array('form_id' => $form_id));
+    $form_state_wrapped = rules_forms_metadata_wrapper('form_state', new RulesFormsArrayEntity('form_state', $form_id, $form_state), array('form_id' => $form_id));
+  }
+  catch (EntityMetadataWrapperException $e) {
+    rules_log($e->getMessage(), array(), RulesLog::ERROR);
+  }
 
   rules_invoke_event("rules_forms_{$form_id}_{$event_type}", $form_wrapped, $form_state_wrapped);
 
