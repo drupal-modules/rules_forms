@@ -17,31 +17,29 @@ function rules_forms_rules_file_info() {
  */
 function rules_forms_rules_event_info() {
   $events = array();
-  foreach (RulesFormsFormController::loadAll() as $form_id => $wrapper) {
+  foreach (rules_forms_get_form_info() as $form_id => $info) {
     $defaults = array(
       'group' => 'Rules Forms',
       'access callback' => 'rules_forms_integration_access',
       'variables' => array(
         'form' => array(
-          'type' => 'form',
-          'label' => $wrapper->label(),
-          'bundle' => $form_id,
+          'type' => $form_id,
+          'label' => $info['label'],
         ),
         'form_state' => array(
-          'type' => 'form_state',
-          'label' => $wrapper->label(),
-          'bundle' => $form_id,
+          'type' => $form_id .'_state',
+          'label' => t('@form state', array('@form' => $info['label'])),
         ),
       ),
     );
     $events['rules_forms_' . $form_id . '_form_built'] = $defaults + array(
-      'label' => t('@form is being built', array('@form' => $wrapper->label())),
+      'label' => t('@form is being built', array('@form' => $info['label'])),
     );
     $events['rules_forms_' . $form_id . '_form_submit'] = $defaults + array(
-      'label' => t('@form is submitted', array('@form' => $wrapper->label())),
+      'label' => t('@form is submitted', array('@form' => $info['label'])),
     );
     $events['rules_forms_' . $form_id . '_form_validate'] = $defaults + array(
-      'label' => t('@form is being validated', array('@form' => $wrapper->label())),
+      'label' => t('@form is being validated', array('@form' => $info['label'])),
     );
   }
   return $events;
@@ -215,19 +213,40 @@ function rules_forms_rules_action_info() {
 }
 
 /**
- * Implements hook_rules_data_info_alter().
+ * Implements hook_rules_data_info().
  */
-function rules_forms_rules_data_info_alter(&$data_info) {
+function rules_forms_rules_data_info() {
+  $data_info = array();
   $data_info['form'] = array(
     'label' => t('form'),
     'group' => t('Rules Forms'),
-    'is wrapped' => TRUE,
+    'wrap' => TRUE,
   );
   $data_info['form_state'] = array(
     'label' => t('form state'),
     'group' => t('Rules Forms'),
-    'is wrapped' => TRUE,
+    'wrap' => TRUE,
   );
+
+  // Each active form has its own data type with unique property info
+  // describing the structure of the form.
+  foreach (rules_forms_get_form_info() as $form_id => $info) {
+    $data_info[$form_id] = array(
+      'label' => $info['label'],
+      'group' => t('Rules Forms'),
+      'parent' => 'form',
+      'property info' => $info['properties']['form'],
+      'wrap' => TRUE,
+    );
+    $data_info[$form_id .'_state'] = array(
+      'label' => t('@form state', array('@form' => $info['label'])),
+      'group' => t('Rules Forms'),
+      'parent' => 'form_state',
+      'property info' => $info['properties']['form_state'],
+      'wrap' => TRUE,
+    );
+  }
+  return $data_info;
 }
 
 /**

@@ -164,13 +164,10 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
  * @param string $message
  *   The error message to set on the form element.
  */
-function rules_forms_action_set_error($wrapper, $message, $settings, $state, $element) {
+function rules_forms_action_set_error(RulesFormsMetadataWrapper $wrapper, $message, $settings, $state, $element) {
   // Use the data selector structure to target the form element.
-  $data = $settings['data:select'];
-  if (strpos($element, ':') !== FALSE) {
-    // Strip off the 'form' portion of selector data.
-    $element = substr($data, strpos($data, ':') + 1);
-    $element = str_replace(':', '][', $element);
+  if ($wrapper instanceof RulesFormsElementWrapper) {
+    $element = $wrapper->getElementName();
   }
   else {
     $element = '';

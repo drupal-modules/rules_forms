@@ -32,11 +32,6 @@ function rules_forms_schema() {
         'type' => 'text',
         'size' => 'medium',
       ),
-      'settings' => array(
-        'description' => 'Serialized information about additional form settings.',
-        'type' => 'text',
-        'size' => 'medium',
-      ),
       'rebuild' => array(
         'description' => 'Indicates whether form element property information needs to be rebuilt.',
         'type' => 'int',
@@ -49,8 +44,6 @@ function rules_forms_schema() {
       'form_id' => array('form_id'),
     ),
   );
-  $schema['cache_rules_forms'] = drupal_get_schema_unprocessed('system', 'cache');
-  $schema['cache_rules_forms']['description'] = 'Cache table for Rules Forms form configurations.';
   return $schema;
 }
 

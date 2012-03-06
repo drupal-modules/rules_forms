@@ -65,248 +65,71 @@ function rules_forms_menu() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function rules_forms_hook_info() {
+  $hooks['rules_forms_element_info'] = array(
+    'group' => 'info',
+  );
+  $hook['rules_forms_element_info_alter'] = array(
+    'group' => 'info',
+  );
+  return $hooks;
+}
+
+/**
+ * Returns cached data.
+ *
+ * @param string $cid
+ *   The cache ID of the cache to return.
+ */
+function &rules_forms_get_cache($cid) {
+  static $cache;
+  if (!isset($cache)) {
+    $cache = &drupal_static(__FUNCTION__, array());
+  }
+
+  if (!isset($cache[$cid])) {
+    if ($cache_data = cache_get($cid)) {
+      $cache[$cid] = $cache_data->data;
+    }
+    else {
+      $cache[$cid] = FALSE;
+    }
+  }
+  return $cache[$cid];
+}
+
+/**
+ * Caches data.
+ *
+ * @param string $cid
+ *   The cache ID.
+ * @param mixed $data
+ *   The data to be cached.
+ */
+function rules_forms_set_cache($cid, $data) {
+  $cache = &drupal_static('rules_forms_get_cache', array());
+  $cache[$cid] = $data;
+  cache_set($cid, $cache[$cid]);
+}
+
+/**
+ * Clears the Rules Forms and Rules caches.
+ */
+function rules_forms_clear_cache() {
+  cache_clear_all('rules_forms', 'cache', TRUE);
+  rules_clear_cache();
+  drupal_static_reset('rules_forms_get_cache');
+}
+
+/**
  * Implements hook_flush_caches().
  */
 function rules_forms_flush_caches() {
   db_update('rules_forms')
     ->fields(array('rebuild' => 1))
     ->execute();
-  return array('cache_rules_forms');
-}
-
-/**
- * Implements hook_entity_info().
- */
-function rules_forms_entity_info() {
-  $return = array();
-  $return['form'] = array(
-    'label' => t('Form'),
-    'module' => 'rules_forms',
-    'entity class' => 'RulesFormsArrayEntity',
-    'base table' => 'rules_forms',
-    'entity keys' => array(
-      'id' => 'form_id',
-      'name' => 'form_id',
-      'bundle' => 'form_id',
-    ),
-    'bundles' => array(),
-  );
-
-  $return['form_state'] = array(
-    'label' => t('Form state'),
-    'module' => 'rules_forms',
-    'entity class' => 'RulesFormsArrayEntity',
-    'base table' => 'rules_forms',
-    'entity keys' => array(
-      'id' => 'form_id',
-      'name' => 'form_id',
-      'bundle' => 'form_id',
-    ),
-    'bundles' => array(),
-  );
-
-  // Each active form is a bundle for both form and form_state.
-  foreach (RulesFormsFormController::loadAll() as $form_id => $wrapper) {
-    $return['form']['bundles'][$form_id] = array(
-      'label' => $wrapper->label(),
-    );
-    $return['form_state']['bundles'][$form_id] = array(
-      'label' => $wrapper->label(),
-    );
-  }
-  
-  return $return;
-}
-
-/**
- * Implements hook_entity_property_info().
- */
-function rules_forms_entity_property_info() {
-  // Both form and form_state are entities, and each active form
-  // is a bundle of each entity. This allows the data to be available in
-  // the Rules data selector and allows us to attach unique properties
-  // that mimic the form structure to each bundle. Instances of each
-  // bundle are passed to Rules as the $form array in hook_form_alter().
-  $info = array(
-    'form' => array('bundles' => array()),
-    'form_state' => array('bundles' => array()),
-  );
-  foreach (RulesFormsFormController::loadAll() as $form_id => $wrapper) {
-    $info['form']['bundles'][$form_id]['properties'] = $wrapper->getPropertyInfo('form');
-    $info['form_state']['bundles'][$form_id]['properties'] = $wrapper->getPropertyInfo('form_state');
-  }
-
-  return $info;
-}
-
-/**
- * Defines an array of form element types that can be accessed
- * in Rules Forms rules and their property info as required by
- * hook_entity_property_info(). This data is used as property
- * info for the individual elements of a form depending on the
- * form element's type. Any element types not listed here will
- * not be accessible in the Rules data selector.
- */
-function rules_forms_element_property_info() {
-  $defaults = array(
-    'getter callback' => 'rules_forms_get_attribute',
-    'setter callback' => 'rules_forms_set_attribute',
-    'computed' => TRUE,
-    'form type' => 'attribute',
-  );
-
-  $common = array(
-    '#access' => $defaults + array(
-      'type' => 'boolean',
-      'label' => 'access',
-      'description' => t('Whether the element is accessible or not; when FALSE, the element is not rendered and the user submitted value is not taken into consideration.'),
-    ),
-    '#description' => $defaults + array(
-      'type' => 'text',
-      'label' => 'description',
-      'description' => t('The description of the form element.'),
-    ),
-    '#disabled' => $defaults + array(
-      'type' => 'boolean',
-      'label' => 'disabled',
-      'description' => t('Disables (greys out) a form input element.'),
-    ),
-    '#prefix' => $defaults + array(
-      'type' => 'text',
-      'label' => 'prefix',
-      'description' => t('Text or markup to include before the form element.'),
-    ),
-    '#suffix' => $defaults + array(
-      'type' => 'text',
-      'label' => 'suffix',
-      'description' => t('Text or markup to include after the form element.'),
-    ),
-    '#title' => $defaults + array(
-      'type' => 'text',
-      'label' => 'title',
-      'description' => t('The title of the form element.'),
-    ),
-    '#weight' => $defaults + array(
-      'type' => 'integer',
-      'label' => 'weight',
-      'description' => t('Used to sort the list of form elements before being output; lower numbers appear before higher numbers.'),
-    ),
-  );
-
-  $field = array(
-    '#default_value' => $defaults + array(
-      'type' => 'text',
-      'label' => 'default value',
-      'description' => t('The value of the form element that will be displayed or selected initially if the form has not been submitted yet.'),
-    ),
-    '#field_prefix' => $defaults + array(
-      'type' => 'text',
-      'label' => 'field prefix',
-      'description' => t('Text or code that is placed directly in front of the textfield.'),
-    ),
-    '#field_suffix' => $defaults + array(
-      'type' => 'text',
-      'label' => 'field suffix',
-      'description' => t('Text or code that is placed directly after the textfield.'),
-    ),
-  );
-
-  $elements = array();
-  $elements['item'] = array(
-    'label' => t('Item'),
-    'properties' => $common,
-  );
-  $elements['textfield'] = array(
-    'label' => t('Textfield'),
-    'properties' => $common + $field,
-  );
-  $elements['textarea'] = array(
-    'label' => t('Textarea'),
-    'properties' => $common + $field,
-  );
-  $elements['checkbox'] = array(
-    'label' => t('Checkbox'),
-    'properties' => $common + $field,
-  );
-  $elements['radio'] = array(
-    'label' => t('Radio'),
-    'properties' => $common + $field,
-  );
-  $elements['checkboxes'] = array(
-    'label' => t('Checkboxes'),
-    'properties' => $common + $field + array(
-      '#options' => $defaults + array(
-        'type' => 'text',
-        'label' => 'options',
-        'description' => t('Selectable options for a form element that allows multiple choices.'),
-      ),
-    ),
-  );
-  $elements['radios'] = array(
-    'label' => t('Radios'),
-    'properties' => $common + $field + array(
-      '#options' => $defaults + array(
-        'type' => 'text',
-        'label' => 'options',
-        'description' => t('Selectable options for a form element that allows multiple choices.'),
-      ),
-    ),
-  );
-  $elements['select'] = array(
-    'label' => t('Select'),
-    'properties' => $common + $field + array(
-      '#multiple' => $defaults + array(
-        'type' => 'boolean',
-        'label' => 'allow multiple',
-        'description' => t('Indicates whether the user may select more than one item.'),
-      ),
-      '#options' => $defaults + array(
-        'type' => 'text',
-        'label' => 'options',
-        'description' => t('Selectable options for a form element that allows multiple choices.'),
-      ),
-    ),
-  );
-  $elements['fieldset'] = array(
-    'label' => t('Fieldset'),
-    'properties' => $common + array(
-      '#collapsible' => $defaults + array(
-        'type' => 'boolean',
-        'label' => 'collapsible',
-        'description' => t('Indicates whether or not the fieldset can be collapsed with JavaScript.'),
-      ),
-      '#collapsed' => $defaults + array(
-        'type' => 'boolean',
-        'label' => 'collapsed',
-        'description' => t('Indicates whether or not the fieldset is collapsed by default.'),
-      ),
-    ),
-  );
-  $elements['button'] = array('label' => t('Button'));
-  $elements['submit'] = array('label' => t('Submit'));
-  $elements['button']['properties'] = $elements['submit']['properties'] = $common + array(
-    '#value' => $defaults + array(
-      'type' => 'text',
-      'label' => 'label',
-      'description' => t('The label text of the form element.'),
-    ),
-  );
-  $elements['value'] = array(
-    'label' => t('Value'),
-    'properties' => array(
-      '#value' => $defaults + array(
-        'type' => 'text',
-        'label' => 'value',
-        'description' => t('A hidden value.'),
-      ),
-    ),
-  );
-
-  // Value fields are not settable, buttons don't have descriptions, and items can't be disabled.
-  unset($elements['value']['properties']['#value']['setter callback']);
-  unset($elements['button']['properties']['#description'], $elements['submit']['properties']['#description'], $elements['item']['properties']['#disabled']);
-
-  return $elements;
 }
 
 /**
@@ -381,7 +204,7 @@ function rules_forms_set_attribute(&$element, $name, $value) {
  * Implements hook_form_alter().
  */
 function rules_forms_form_alter(&$form, &$form_state, $form_id) {
-  if (RulesFormsFormController::isActive($form_id)) {
+  if ($form_info = rules_forms_get_form_info($form_id)) {
     // Set elements for form events.
     rules_forms_event_build($form, $form_state, $form_id);
     $form['#validate'][] = 'rules_forms_event_validate';
@@ -405,7 +228,6 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
 function rules_forms_event_build(&$form, &$form_state, $form_id) {
   // @TODO Save form values on build for comparison against
   // the form_state entity on validate and submit events.
-  // Invoke the form_built event.
   rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
 }
 
@@ -455,19 +277,14 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
   }
 
   // Prepare and wrap form data for passage to Rules.
-  try {
-    $form_wrapped = rules_forms_metadata_wrapper('form', new RulesFormsArrayEntity('form', $form_id, $form), array('form_id' => $form_id));
-    $form_state_wrapped = rules_forms_metadata_wrapper('form_state', new RulesFormsArrayEntity('form_state', $form_id, $form_state), array('form_id' => $form_id));
-  }
-  catch (EntityMetadataWrapperException $e) {
-    rules_log($e->getMessage(), array(), RulesLog::ERROR);
-  }
+  // $form_data = new EntityMetadataArrayObject($form);
+  // $form_state_data = new EntityMetadataArrayObject($form_state);
 
-  rules_invoke_event("rules_forms_{$form_id}_{$event_type}", $form_wrapped, $form_state_wrapped);
+  rules_invoke_event("rules_forms_{$form_id}_{$event_type}", new EntityMetadataArrayObject($form), new EntityMetadataArrayObject($form_state));
 
   // Repopulate form arrays to update the form.
-  $form = (array) $form_wrapped->value()->getArray();
-  $form_state = (array) $form_state_wrapped->value()->getArray();
+  // $form = $form_data->getArray();
+  // $form_state = $form_state_data->getArray();
 }
 
 /**
@@ -475,13 +292,132 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
  */
 function rules_forms_after_build($form, &$form_state) {
   $form_id = $form['form_id']['#value'];
-  $controller = new RulesFormsFormController();
-  $form_info = $controller->load($form_id);
-  if ($form_info !== FALSE && ($form_info->needsRebuild())) {
-    $form_info->rebuildPropertyInfo($form);
-    $controller->update($form_info)->clearCache();
-    drupal_set_message(t('Form elements for %form have been built.', array('%form' => $form_info->label())));
+  $form_info = rules_forms_get_form_info($form_id);
+  if ($form_info !== FALSE && !empty($form_info['rebuild'])) {
+    $evaluator = new RulesFormsFormEvaluator();
+    $property_info = $evaluator->evaluate($form);
+    $form_info['properties'] = $property_info['properties'];
+    $form_info['rebuild'] = FALSE;
+    rules_forms_update_form_info($form_info);
+    rules_forms_clear_cache();
+    drupal_set_message(t('Form elements for %form have been built.', array('%form' => $form_info['label'])));
   }
   // @TODO Consider adding the element inspection tool.
   return $form;
+}
+
+/**
+ * Activates events for a form.
+ *
+ * @param array $info
+ *   The information to store.
+ */
+function rules_forms_activate_form(array $info) {
+  $info += array(
+    'properties' => array('form' => array(), 'form_state' => array()),
+    'rebuild' => TRUE,
+  );
+  $fields = array(
+    'form_id' => $info['form_id'],
+    'label' => $info['label'],
+    'properties' => serialize($info['properties']),
+    'rebuild' => $info['rebuild'] == TRUE ? 1 : 0,
+  );
+  $result = db_insert('rules_forms')
+    ->fields($fields)
+    ->execute();
+  return SAVED_NEW;
+}
+
+/**
+ * Updates information for a form.
+ *
+ * @param array $info
+ *   The information to update.
+ */
+function rules_forms_update_form_info(array $info) {
+  $fields = array(
+    'form_id' => $info['form_id'],
+    'label' => $info['label'],
+    'properties' => serialize($info['properties']),
+    'rebuild' => $info['rebuild'] == TRUE ? 1 : 0,
+  );
+  $result = db_update('rules_forms')
+    ->fields($fields)
+    ->condition('form_id', $fields['form_id'])
+    ->execute();
+  return SAVED_UPDATED;
+}
+
+/**
+ * Returns an array of information about active forms.
+ *
+ * @param string $form_id
+ *   An optional form ID specifying the form about which to return information.
+ */
+function rules_forms_get_form_info($form_id = NULL) {
+  if ($data = rules_forms_get_cache('rules_forms_info')) {
+    $form_info = $data;
+  }
+  else {
+    $form_info = array();
+    $results = db_select('rules_forms', 'rf')
+      ->fields('rf')
+      ->execute();
+
+    foreach ($results as $info) {
+      $info = (array) $info;
+      $info['properties'] = unserialize($info['properties']);
+      $info['rebuild'] = $info['rebuild'] == TRUE;
+      $form_info[$info['form_id']] = $info;
+    }
+    rules_forms_set_cache('rules_forms_info', $form_info);
+  }
+
+  if (isset($form_id)) {
+    return isset($form_info[$form_id]) ? $form_info[$form_id] : FALSE;
+  }
+  return $form_info;
+}
+
+/**
+ * Deactivates events for a form.
+ *
+ * @param string $form_id
+ *   The form ID.
+ */
+function rules_forms_deactivate_form($form_id) {
+  $result = db_delete('rules_forms')
+    ->condition('form_id', $form_id)
+    ->execute();
+  return SAVED_DELETED;
+}
+
+/**
+ * Returns form element information defined in hook_rules_forms_element_info().
+ *
+ * @param string $name
+ *   An optional name specifying the element information to return.
+ *
+ * @return array
+ *   An array of element property information.
+ */
+function rules_forms_get_element_info($name = NULL) {
+  $elements = &drupal_static(__FUNCTION__);
+  if (!isset($elements)) {
+    $elements = array();
+    foreach (module_invoke_all('rules_forms_element_info') as $key => $value) {
+      $value += array(
+        'type' => 'struct',
+        'computed' => TRUE,
+        'creation callback' => 'rules_forms_create_structure',
+      );
+      $elements[$key] = $value;
+    }
+    drupal_alter('rules_forms_element_info', $elements);
+  }
+  if (isset($name)) {
+    return isset($elements[$name]) ? $elements[$name] : array();
+  }
+  return $elements;
 }

@@ -28,11 +28,11 @@ function rules_forms_admin_events($form, &$form_state) {
     '#submit' => array('rules_forms_settings_submit'),
   );
 
-  $form_info = RulesFormsFormController::loadAll();
+  $form_info = rules_forms_get_form_info();
   if (!empty($form_info)) {
     $options = array();
-    foreach ($form_info as $form_id => $wrapper) {
-      $options[$form_id] = $wrapper->label();
+    foreach ($form_info as $form_id => $info) {
+      $options[$form_id] = $info['label'];
     }
     $form['active_forms'] = array(
       '#type' => 'fieldset',
@@ -72,11 +72,10 @@ function rules_forms_settings_submit($form_id, $form_state) {
  */
 function rules_forms_events_deactivate_submit($form_id, $form_state) {
   $deactivate_events = array_filter($form_state['values']['form_events']);
-  $controller = new RulesFormsFormController();
   foreach ($deactivate_events as $key => $value) {
-    $controller->delete($key);
+    rules_forms_deactivate_form($key);
   }
-  $controller->clearCache();
+  rules_forms_clear_cache();
   drupal_set_message(t('The event settings have been saved.'));
 }
 
@@ -90,7 +89,7 @@ function rules_forms_events_deactivate_submit($form_id, $form_state) {
  *   redirecting the user back to that page once activation is completed.
  */
 function rules_forms_activate($form_id_activate, $form_page) {
-  if (RulesFormsFormController::isActive($form_id_activate)) {
+  if ($form_info = rules_forms_get_form_info($form_id_activate)) {
     return t('Events for %form_id have already been activated.', array('%form_id' => $form_id_activate));
   }
   return drupal_get_form('rules_forms_activate_confirm_form', $form_id_activate, $form_page);
@@ -131,9 +130,8 @@ function rules_forms_activate_confirm_form_submit($form, &$form_state) {
   );
 
   // Save the form information but prevent cache rebuild until the form is visited.
-  $controller = new RulesFormsFormController();
-  $controller->create($form_info);
-  $controller->clearCache();
+  rules_forms_activate_form($form_info);
+  rules_forms_clear_cache();
   drupal_set_message(t("%form has been activated.", array('%form' => $form_state['form_id_activate'])));
 
   // Redirect the user back to the form that was activated.
