@@ -13,25 +13,26 @@ function rules_forms_element_value_info_alter(&$element_info, $element) {
   $element->settings += array('data:select' => NULL);
   if ($wrapper = $element->applyDataSelector($element->settings['data:select'])) {
     if ($wrapper instanceof RulesFormsElementWrapper) {
-    $info = $wrapper->info();
-    $element_info['parameter']['value']['type'] = $wrapper->valueType();
-    $element_info['parameter']['value']['options list']  = !empty($info['options list']) ? 'rules_data_selector_options_list' : FALSE;
-  }}
+      $info = $wrapper->info();
+      $element_info['parameter']['value']['type'] = $wrapper->valueType();
+      $element_info['parameter']['value']['options list']  = !empty($info['options list']) ? 'rules_data_selector_options_list' : FALSE;
+    }
+  }
 }
 
 /**
  * Condition: Form element has value.
  */
-function rules_forms_condition_element_value(EntityMetadataWrapper $wrapper, $value, $regex, $settings, $state, $element) {
+function rules_forms_condition_element_value($wrapper, $value, $regex, $settings, $state, $element) {
   if ($wrapper instanceof RulesFormsElementWrapper) {
-    $attribute = isset($wrapper->value) ? $wrapper->value->value() : $wrapper->default_value->value();
+    $element_value = isset($wrapper->value) ? $wrapper->value->value() : $wrapper->default_value->value();
     // Perform the comparison with a regular expression if necessary.
     if ($regex) {
       // Allow multiple regular expressions to be run, one on each line.
       // Return FALSE immediately if an expression fails.
       $lines = explode("\r\n", $value);
       foreach ($lines as $line) {
-        $result = preg_match($value, $attribute_value) == 1;
+        $result = preg_match($value, $element_value) == 1;
         if ($result === FALSE) {
           return FALSE;
         }
@@ -40,11 +41,11 @@ function rules_forms_condition_element_value(EntityMetadataWrapper $wrapper, $va
     }
 
     // Multiple values come in as array.
-    if (is_array($attribute_value)) {
+    if (is_array($element_value)) {
       $lines = explode("\r\n", $value);
-      return rules_forms_equal_array_values($lines, $attribute_value);
+      return rules_forms_equal_array_values($lines, $element_value);
     }
-    return $attribute_value === $value;
+    return $element_value === $value;
   }
   else {
     return $wrapper === $value;
@@ -54,11 +55,11 @@ function rules_forms_condition_element_value(EntityMetadataWrapper $wrapper, $va
 /**
  * Condition: Form element attribute has value.
  */
-function rules_forms_condition_attribute_value(EntityMetadataWrapper $wrapper, $value, $regex, $settings, $state, $element) {
+function rules_forms_condition_attribute_value($wrapper, $value, $regex, $settings, $state, $element) {
   if ($wrapper instanceof RulesFormsAttributeWrapper) {
     $attribute_value = $wrapper->value();
     // Perform the comparison with a regular expression if necessary.
-    if ($regex) {
+    if ($wrapper->type() == 'text' && $regex) {
       // Allow multiple regular expressions to be run, one on each line.
       // Return FALSE immediately if an expression fails.
       $lines = explode("\r\n", $value);
@@ -85,22 +86,8 @@ function rules_forms_condition_attribute_value(EntityMetadataWrapper $wrapper, $
 
 /**
  * Condition: Form element value has changed.
- *
- * @param ArrayObject $form
- *   A reference to the form array of the form for which the event
- *   was triggered.
- * @param RulesFormsFormStateWrapper $form_state
- *   A reference to the form state array of the form for which the
- *   event was triggered.
- * @param string $element
- *   The element ID of the element being checked in the form of
- *   element_type:element_id.
- *
- * @return bool
- *   Indicates whether the element's value has changed since the
- *   form was built.
  */
-function rules_forms_condition_element_changed(EntityStructureWrapper $form_element, $form_state, $settings, $state, $element) {
+function rules_forms_condition_element_changed(RulesFormsElementWrapper $form_element, $form_state, $settings, $state, $element) {
   $form_id = $form['form_id']['#value'];
   $form_values = $form_state->value();
   $form_values = $form_values['values'];
@@ -168,11 +155,18 @@ function rules_forms_equal_array_values($array1, $array2) {
  * Action: Set the value of an element attribute.
  */
 function rules_forms_action_attribute_set(EntityMetadataWrapper $wrapper, $value, $settings, $state, $element) {
-  if ($wrapper instanceof RulesFormsAttributeWrapper) {
+  if ($wrapper instanceof EntityValueWrapper) {
     try {
-      $wrapper->set($value);
+      // If this attribute type defines a setter callback then we use that.
+      $info = $wrapper->info();
+      if (isset($info['attribute info']['setter callback']) && is_callable($info['attribute info']['setter callback'])) {
+        $info['attribute info']['setter callback']($wrapper, $value);
+      }
+      else {
+        $wrapper->set($value);
+      }
     }
-    catch (EntityMetadataWrapperException $e) {
+    catch (EntityMetadataWrapperException $e) {      
       throw new RulesEvaluationException('Unable to modify data "@selector": ' . $e->getMessage(), array('@selector' => $settings['data:select']));
     }
   }
@@ -239,77 +233,17 @@ function rules_forms_action_set_error(EntityMetadataWrapper $wrapper, $message, 
 }
 
 /**
- * Validation callback for set options action.
- */
-function rules_forms_action_set_options_validate($element) {
-  // Check for duplicate key values to prevent unexpected data loss. Require
-  // all options to include a safe_key.
-  $lines = explode("\n", trim($element->settings['options']));
-  $existing_keys = array();
-  $duplicate_keys = array();
-  $missing_keys = array();
-  $long_keys = array();
-  $group = '';
-
-  // Check each option for validity - length, existence, and duplication.
-  foreach ($lines as $line) {
-    $matches = array();
-    $line = trim($line);
-    if (preg_match('/^([^|]*)\|(.*)$/', $line, $matches)) {
-      $key = $matches[1];
-
-      // Validate the length of the key.
-      if (strlen($key) > 128) {
-        $long_keys[] = $key;
-      }
-    }
-    // The key was not found.
-    else {
-      $missing_keys[] = $line;
-    }
-
-    // Ensure this is not a duplicate key.
-    if (isset($key)) {
-      if (isset($existing_keys[$group][$key])) {
-        $duplicate_keys[$key] = $key;
-      }
-      else {
-        $existing_keys[$group][$key] = $key;
-      }
-    }
-  }
-
-  // Throw exceptions for validation errors.
-  if (!empty($missing_keys)) {
-    throw new RulesIntegrityException(t('Every option must have a key specified. Specify each option as "safe_key|Some readable option'), $element);
-  }
-
-  if (!empty($long_keys)) {
-    throw new RulesIntegrityException(t('Option keys must be less than 128 characters. The following keys exceed this limit:') . theme('item_list', $long_keys), $element);
-  }
-
-  if (!empty($duplicate_keys)) {
-    throw new RulesIntegrityException(t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)), $element);
-  }
-}
-
-/**
  * Action: Set multiple value options of a form element.
  * Note: For multiple option values each key value pair is on its own line
  * and formatted key|value.
  *
- * @param ArrayObject $form
- *   A reference to the form array of the form for which the event
- *   was triggered.
- * @param string $element_id
- *   The element ID of the element being checked in the form of
- *   element_type:element_id.
+ * @param RulesFormsAttributeWrapper $wrapper
+ *   The wrapped form element attribute.
  * @param string $value
  *   A value to assign to the element's #options attribute. This value
  *   is split into an array.
  */
-function rules_forms_action_set_options($form, $element_id, $value) {
-  $form_element = &_rules_forms_get_element($form, $element_id);
+function rules_forms_options_set(EntityMetadataWrapper $wrapper, $value) {
   $lines = explode("\r\n", trim($value));
 
   $processed_options = array();
@@ -319,8 +253,5 @@ function rules_forms_action_set_options($form, $element_id, $value) {
       $processed_options[$matches[1]] = $matches[2];
     }
   }
-  if (isset($form_element['#type'])) {
-    $form_element['#options'] = $processed_options;
-  }
+  $wrapper->set($processed_options);
 }
-

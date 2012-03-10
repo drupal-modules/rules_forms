@@ -38,17 +38,24 @@ function _rules_forms_element_info() {
  *   hook_rules_forms_element_info().
  */
 function _rules_forms_element_properties($element_type) {
+  // Allow modules to alter rules forms element attribute info.
+  $attribute_info = &drupal_static(__FUNCTION__);
+  if (!isset($attribute_info)) {
+    $attribute_info = _rules_forms_attribute_info();
+    drupal_alter('rules_forms_attribute_info', $attribute_info);
+  }
+
   $attributes = array();
-  foreach (_rules_forms_attribute_info() as $attribute => $info) {
+  foreach ($attribute_info as $attribute => $info) {
     if ($info['attribute info']['elements'] == 'all' || in_array($element_type, $info['attribute info']['elements'])) {
       $info += array(
-        'getter callback' => 'rules_forms_get_attribute',
+        'getter callback' => 'entity_property_verbatim_get',
         'computed' => TRUE,
         'attribute info' => array(),
       );
       $info['attribute info'] += array('read only' => FALSE);
       if (empty($info['attribute info']['read only'])) {
-        $info += array('setter callback' => 'rules_forms_set_attribute');
+        $info += array('setter callback' => 'entity_property_verbatim_set');
       }
       $attributes[$attribute] = $info;
     }
@@ -113,18 +120,21 @@ function _rules_forms_attribute_info() {
     '#field_prefix' => array(
       'type' => 'text',
       'label' => t('Field prefix text or HTML'),
+      'sanitize' => 'check_markup',
       'description' => t('Text or code that is placed directly in front of the textfield.'),
       'attribute info' => array('elements' => array('checkbox', 'radio', 'select', 'textarea', 'textfield')),
     ),
     '#field_suffix' => array(
       'type' => 'text',
       'label' => t('Field suffix text or HTML'),
+      'sanitize' => 'check_markup',
       'description' => t('Text or code that is placed directly after the textfield.'),
       'attribute info' => array('elements' => array('checkbox', 'radio', 'select', 'textarea', 'textfield')),
     ),
     '#markup' => array(
       'type' => 'text',
       'label' => t('HTML'),
+      'sanitize' => 'check_markup',
       'description' => t('Used to set HTML that will be output on the form.'),
       'attribute info' => array('elements' => array('item', 'markup')),
     ),
@@ -147,7 +157,11 @@ function _rules_forms_attribute_info() {
       'type' => 'text',
       'label' => t('Options'),
       'description' => t('Selectable options for a form element that allows multiple choices.'),
-      'attribute info' => array('elements' => array('select', 'checkboxes', 'radios', 'tableselect')),
+      'attribute info' => array(
+        'elements' => array('select', 'checkboxes', 'radios', 'tableselect'),
+        'validate callback' => 'rules_forms_options_set_validate',
+        'setter callback' => 'rules_forms_options_set',
+      ),
     ),
     '#prefix' => array(
       'type' => 'text',

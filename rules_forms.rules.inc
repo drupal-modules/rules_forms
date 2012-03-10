@@ -179,7 +179,7 @@ function rules_forms_rules_action_info() {
       'value' => array(
         'type' => '*',
         'label' => t('Value'),
-        'description' => t('The new value to set for the specified data.'),
+        'description' => t('The new value to set for the specified attribute. To set the <em>#options</em> attribute of a form element, <strong>Key-value pairs MUST be specified as "safe_key|Some readable option"</strong>. Use of only alphanumeric characters and underscores is recommended in keys. One option per line.'),
         'allow null' => TRUE,
         'optional' => TRUE,
       ),
@@ -372,6 +372,64 @@ function rules_forms_attribute_set_validate(RulesAbstractPlugin $element) {
     elseif (!isset($info['attribute info'])) {
       throw new RulesIntegrityException(t('The selected data property is not a form element attribute.'));
     }
+    elseif (isset($element->settings['value']) && isset($info['attribute info']['validate callback']) && is_callable($info['attribute info']['validate callback'])) {
+      $info['attribute info']['validate callback']($element->settings['value'], $element);
+    }
+  }
+}
+
+/**
+ * Validation callback for setting the #options attribute of an element.
+ */
+function rules_forms_options_set_validate($value, RulesAbstractPlugin $element) {
+  // Check for duplicate key values to prevent unexpected data loss. Require
+  // all options to include a safe_key.
+  $lines = explode("\n", trim($value));
+  $existing_keys = array();
+  $duplicate_keys = array();
+  $missing_keys = array();
+  $long_keys = array();
+  $group = '';
+
+  // Check each option for validity - length, existence, and duplication.
+  foreach ($lines as $line) {
+    $matches = array();
+    $line = trim($line);
+    if (preg_match('/^([^|]*)\|(.*)$/', $line, $matches)) {
+      $key = $matches[1];
+
+      // Validate the length of the key.
+      if (strlen($key) > 128) {
+        $long_keys[] = $key;
+      }
+    }
+    // The key was not found.
+    else {
+      $missing_keys[] = $line;
+    }
+
+    // Ensure this is not a duplicate key.
+    if (isset($key)) {
+      if (isset($existing_keys[$group][$key])) {
+        $duplicate_keys[$key] = $key;
+      }
+      else {
+        $existing_keys[$group][$key] = $key;
+      }
+    }
+  }
+
+  // Throw exceptions for validation errors.
+  if (!empty($missing_keys)) {
+    throw new RulesIntegrityException(t('Every option must have a key specified. Specify each option as "safe_key|Some readable option'), $element);
+  }
+
+  if (!empty($long_keys)) {
+    throw new RulesIntegrityException(t('Option keys must be less than 128 characters. The following keys exceed this limit:') . theme('item_list', $long_keys), $element);
+  }
+
+  if (!empty($duplicate_keys)) {
+    throw new RulesIntegrityException(t('Options within the select list must be unique. The following keys have been used multiple times:') . theme('item_list', array('items' => $duplicate_keys)), $element);
   }
 }
 

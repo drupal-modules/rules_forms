@@ -69,13 +69,14 @@ class RulesFormsFormEvaluator {
         $defaults = array(
           'label' => isset($form[$key]['#title']) ? $this->elementInfo[$form[$key]['#type']] .': '. $form[$key]['#title'] : $this->elementInfo[$form[$key]['#type']],
           'computed' => TRUE,
-          'getter callback' => 'rules_forms_get_attribute',
+          'auto creation' => 'rules_forms_create_structure',
+          'getter callback' => 'entity_property_verbatim_get',
         );
   
         // All form elements are structures since they have attribute property info.
         $form_properties[$key] = $defaults + array(
           'type' => 'form_' . $form[$key]['#type'],
-          'setter callback' => 'rules_forms_set_attribute',
+          'setter callback' => 'entity_property_verbatim_set',
           'element info' => array('type' => $form[$key]['#type'], 'name' => isset($form[$key]['#parents']) ? implode('][', $form[$key]['#parents']) : $key),
           'property info' => _rules_forms_element_properties($form[$key]['#type']),
         );
@@ -98,15 +99,19 @@ class RulesFormsFormEvaluator {
       // Handle cases where an array is not necessarily a form element with a #type.
       // We just identify it as a 'struct' with no properties except the sub arrays.
       else {
-        $form_properties[$key] = array(
+        $defaults = array(
           'type' => 'struct',
+          'label' => $key,
+          'computed' => TRUE,
+          'auto creation' => 'rules_forms_create_structure',
+          'getter callback' => 'entity_property_verbatim_get',
           'property info' => array(),
         );
+        $form_properties[$key] = $defaults + array(
+          'setter callback' => 'entity_property_verbatim_set',
+        );
         if ($tree) {
-          $form_state_properties[$key] = array(
-            'type' => 'struct',
-            'property info' => array(),
-          );
+          $form_state_properties[$key] = $defaults;
           $form_state_arg = &$form_state_properties[$key]['property info'];
         }
         else {

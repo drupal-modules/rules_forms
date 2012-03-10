@@ -140,20 +140,6 @@ function rules_forms_create_structure() {
 }
 
 /**
- * Returns a form element attribute.
- */
-function rules_forms_get_attribute($element, array $options, $name, $type) {
-  return $element[$name];
-}
-
-/**
- * Sets a form element property.
- */
-function rules_forms_set_attribute(&$element, $name, $value) {
-  $element[$name] = $value;
-}
-
-/**
  * Implements hook_form_alter().
  */
 function rules_forms_form_alter(&$form, &$form_state, $form_id) {
