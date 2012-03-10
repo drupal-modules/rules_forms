@@ -2,12 +2,22 @@
 
 class RulesFormsFormEvaluator {
 
-  protected $elementInfo, $attributeInfo;
+  protected $elementInfo;
 
   public function __construct() {
-    $this->elementInfo = rules_forms_get_element_info();
+    module_load_include('inc', 'rules_forms', 'includes/rules_forms.info');
+    $this->elementInfo = _rules_forms_element_info();
   }
 
+  /**
+   * Evaluates the elements of a form to identify its structure in property info.
+   *
+   * @param array $form
+   *   The form array to evaluate.
+   *
+   * @return array
+   *   An array of property info for use in hook_rules_data_info().
+   */
   public function evaluate($form) {
     $info = array();
     $info['properties'] = array(
@@ -57,17 +67,17 @@ class RulesFormsFormEvaluator {
     foreach (element_children($form) as $key) {
       if (isset($form[$key]['#type']) && array_key_exists($form[$key]['#type'], $this->elementInfo)) {
         $defaults = array(
-          'label' => isset($form[$key]['#title']) ? $this->elementInfo[$form[$key]['#type']]['label'] .': '. $form[$key]['#title'] : $this->elementInfo[$form[$key]['#type']]['label'],
+          'label' => isset($form[$key]['#title']) ? $this->elementInfo[$form[$key]['#type']] .': '. $form[$key]['#title'] : $this->elementInfo[$form[$key]['#type']],
           'computed' => TRUE,
           'getter callback' => 'rules_forms_get_attribute',
         );
   
+        // All form elements are structures since they have attribute property info.
         $form_properties[$key] = $defaults + array(
-          'type' => 'struct',
+          'type' => 'form_' . $form[$key]['#type'],
           'setter callback' => 'rules_forms_set_attribute',
-          'auto creation' => 'rules_forms_create_structure',
-          'form type' => 'element',
-          'property info' => $this->elementInfo[$form[$key]['#type']]['properties'],
+          'element info' => array('type' => $form[$key]['#type'], 'name' => isset($form[$key]['#parents']) ? implode('][', $form[$key]['#parents']) : $key),
+          'property info' => _rules_forms_element_properties($form[$key]['#type']),
         );
   
         $is_tree = ($tree == TRUE || !empty($form[$key]['#tree']));
@@ -82,11 +92,29 @@ class RulesFormsFormEvaluator {
         }
         else {
           $form_state_properties[$key]['type'] = 'text';
-          $form_state_properties[$key]['form type'] = 'value';
           $form_state_arg = &$form_state_properties;
         }
-        $this->buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);
       }
+      // Handle cases where an array is not necessarily a form element with a #type.
+      // We just identify it as a 'struct' with no properties except the sub arrays.
+      else {
+        $form_properties[$key] = array(
+          'type' => 'struct',
+          'property info' => array(),
+        );
+        if ($tree) {
+          $form_state_properties[$key] = array(
+            'type' => 'struct',
+            'property info' => array(),
+          );
+          $form_state_arg = &$form_state_properties[$key]['property info'];
+        }
+        else {
+          $form_state_arg = &$form_state_properties;
+        }
+        $is_tree = $tree;
+      }
+      $this->buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);
     }
   }
 

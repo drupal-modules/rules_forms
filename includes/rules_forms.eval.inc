@@ -6,11 +6,25 @@
  */
 
 /**
- * Condition: Check a form element attribute value.
+ * Info alter callback for the element has value condition.
+ * Sets the value field according to the type of value the element uses.
  */
-function rules_forms_condition_element_value(EntityMetadataWrappe $wrapper, $value, $regex, $settings, $state, $element) {
-  if ($wrapper instanceof EntityMetadataWrapper) {
-    $attribute_value = $wrapper->value();
+function rules_forms_element_value_info_alter(&$element_info, $element) {
+  $element->settings += array('data:select' => NULL);
+  if ($wrapper = $element->applyDataSelector($element->settings['data:select'])) {
+    if ($wrapper instanceof RulesFormsElementWrapper) {
+    $info = $wrapper->info();
+    $element_info['parameter']['value']['type'] = $wrapper->valueType();
+    $element_info['parameter']['value']['options list']  = !empty($info['options list']) ? 'rules_data_selector_options_list' : FALSE;
+  }}
+}
+
+/**
+ * Condition: Form element has value.
+ */
+function rules_forms_condition_element_value(EntityMetadataWrapper $wrapper, $value, $regex, $settings, $state, $element) {
+  if ($wrapper instanceof RulesFormsElementWrapper) {
+    $attribute = isset($wrapper->value) ? $wrapper->value->value() : $wrapper->default_value->value();
     // Perform the comparison with a regular expression if necessary.
     if ($regex) {
       // Allow multiple regular expressions to be run, one on each line.
@@ -25,6 +39,38 @@ function rules_forms_condition_element_value(EntityMetadataWrappe $wrapper, $val
       return TRUE;
     }
 
+    // Multiple values come in as array.
+    if (is_array($attribute_value)) {
+      $lines = explode("\r\n", $value);
+      return rules_forms_equal_array_values($lines, $attribute_value);
+    }
+    return $attribute_value === $value;
+  }
+  else {
+    return $wrapper === $value;
+  }
+}
+
+/**
+ * Condition: Form element attribute has value.
+ */
+function rules_forms_condition_attribute_value(EntityMetadataWrapper $wrapper, $value, $regex, $settings, $state, $element) {
+  if ($wrapper instanceof RulesFormsAttributeWrapper) {
+    $attribute_value = $wrapper->value();
+    // Perform the comparison with a regular expression if necessary.
+    if ($regex) {
+      // Allow multiple regular expressions to be run, one on each line.
+      // Return FALSE immediately if an expression fails.
+      $lines = explode("\r\n", $value);
+      foreach ($lines as $line) {
+        $result = preg_match($value, $attribute_value) == 1;
+        if ($result === FALSE) {
+          return FALSE;
+        }
+      }
+      return TRUE;
+    }
+  
     // Multiple values come in as array.
     if (is_array($attribute_value)) {
       $lines = explode("\r\n", $value);
@@ -119,6 +165,23 @@ function rules_forms_equal_array_values($array1, $array2) {
 }
 
 /**
+ * Action: Set the value of an element attribute.
+ */
+function rules_forms_action_attribute_set(EntityMetadataWrapper $wrapper, $value, $settings, $state, $element) {
+  if ($wrapper instanceof RulesFormsAttributeWrapper) {
+    try {
+      $wrapper->set($value);
+    }
+    catch (EntityMetadataWrapperException $e) {
+      throw new RulesEvaluationException('Unable to modify data "@selector": ' . $e->getMessage(), array('@selector' => $settings['data:select']));
+    }
+  }
+  else {
+    return array('data' => $value);
+  }
+}
+
+/**
  * Info alter callback for the attribute_set action.
  * Load the Rules callback.
  */
@@ -164,7 +227,7 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
  * @param string $message
  *   The error message to set on the form element.
  */
-function rules_forms_action_set_error(RulesFormsMetadataWrapper $wrapper, $message, $settings, $state, $element) {
+function rules_forms_action_set_error(EntityMetadataWrapper $wrapper, $message, $settings, $state, $element) {
   // Use the data selector structure to target the form element.
   if ($wrapper instanceof RulesFormsElementWrapper) {
     $element = $wrapper->getElementName();

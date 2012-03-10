@@ -50,14 +50,16 @@ function rules_forms_rules_event_info() {
  */
 function rules_forms_rules_condition_info() {
   $conditions = array();
+  // @TODO: The element has value form alter callback should display a
+  // form based on the type of value the element has.
   $conditions['rules_forms_element_has_value'] = array(
-    'label' => t('Form element attribute has value'),
+    'label' => t('Form element has value'),
     'group' => 'Rules Forms',
     'parameter' => array(
       'data' => array(
-        'type' => '*',
-        'label' => t('Form element attribute'),
-        'description' => t('Select the form element attribute to evaluate. You can traverse the form structure using the data selector. Element attributes are prefixed by a hash mark (#).'),
+        'type' => 'form_element',
+        'label' => t('Form element'),
+        'description' => t('Select the form element to evaluate. You can traverse the form structure using the data selector.'),
         'restriction' => 'selector',
         'wrapped' => TRUE,
         'allow null' => TRUE,
@@ -79,8 +81,41 @@ function rules_forms_rules_condition_info() {
     ),
     'base' => 'rules_forms_condition_element_value',
     'callbacks' => array(
+      'form_alter' => 'rules_forms_property_value_form_alter',
+      'info_alter' => 'rules_forms_element_value_info_alter',
+    ),
+  );
+  $conditions['rules_forms_attribute_has_value'] = array(
+    'label' => t('Form element attribute has value'),
+    'group' => 'Rules Forms',
+    'parameter' => array(
+      'data' => array(
+        'type' => '*',
+        'label' => t('Form element attribute'),
+        'description' => t('Select the form element attribute to evaluate. You can traverse the form structure using the data selector. Element attributes are prefixed by a hash mark (#).'),
+        'restriction' => 'selector',
+        'wrapped' => TRUE,
+        'allow null' => TRUE,
+      ),
+      'value' => array(
+        'type' => '*',
+        'label' => t('Value'),
+        'description' => t('Value(s) assigned to the form element attribute. If the form element allows multiple values, enter one value per line.'),
+        'allow null' => TRUE,
+        'optional' => TRUE,
+      ),
+      'regex' => array(
+        'type' => 'boolean',
+        'label' => t('Evaluate as regular expression'),
+        'optional' => TRUE,
+        'description' => t('Perform the data comparison using the provided value as a regular expression. '.
+                           'To execute multiple regular expressions, enter one expression per line.'),
+      ),
+    ),
+    'base' => 'rules_forms_condition_attribute_value',
+    'callbacks' => array(
       'validate' => 'rules_forms_attribute_get_validate',
-      'form_alter' => 'rules_forms_attribute_value_form_alter',
+      'form_alter' => 'rules_forms_property_value_form_alter',
     ),
   );
   $conditions['rules_forms_element_changed'] = array(
@@ -92,7 +127,7 @@ function rules_forms_rules_condition_info() {
         'label' => t('Form state'),
       ),
       'data' => array(
-        'type' => '*',
+        'type' => 'form_element',
         'label' => t('Form element'),
         'description' => t('Select the form element to evaluate. You can traverse the form structure using the data selector. Element attributes are prefixed by a hash mark (#).'),
         'restriction' => 'selector',
@@ -101,10 +136,6 @@ function rules_forms_rules_condition_info() {
       ),
     ),
     'base' => 'rules_forms_condition_element_changed',
-    'callbacks' => array(
-      'validate' => 'rules_forms_element_validate',
-      'form_alter' => 'rules_forms_attribute_value_form_alter',
-    ),
   );
   $conditions['rules_forms_button_clicked'] = array(
     'label' => t('Form button was clicked'),
@@ -139,7 +170,7 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'data' => array(
         'type' => '*',
-        'label' => t('Form'),
+        'label' => t('Form element attribute'),
         'restriction' => 'selector',
         'description' => t('Select the form element attribute to modify. You can traverse the form structure using the data selector. Element attributes are prefixed by a hash mark (#).'),
         'wrapped' => TRUE,
@@ -153,9 +184,10 @@ function rules_forms_rules_action_info() {
         'optional' => TRUE,
       ),
     ),
-    'base' => 'rules_action_data_set',
+    'base' => 'rules_forms_action_attribute_set',
     'callbacks' => array(
       'validate' => 'rules_forms_attribute_set_validate',
+      'form_alter' => 'rules_forms_property_value_form_alter',
       'info_alter' => 'rules_forms_action_attribute_set_info_alter',
     ),
   );
@@ -163,6 +195,7 @@ function rules_forms_rules_action_info() {
     'label' => t('Set an error on the form'),
     'group' => 'Rules Forms',
     'parameter' =>  array(
+      // We use the 'data' and 'value' keys to support reuse of the form alter callback.
       'data' => array(
         'type' => 'form_element',
         'label' => t('Targeted element'),
@@ -170,8 +203,9 @@ function rules_forms_rules_action_info() {
         'description' => t('Select the form element to target (if any).'),
         'wrapped' => TRUE,
         'allow null' => TRUE,
+        'optional' => TRUE,
       ),
-      'message' => array(
+      'value' => array(
         'type' => 'text',
         'label' => t('Message'),
         'optional' => TRUE,
@@ -180,7 +214,7 @@ function rules_forms_rules_action_info() {
     ),
     'base' => 'rules_forms_action_set_error',
     'callbacks' => array(
-      'validate' => 'rules_forms_element_validate',
+      'form_alter' => 'rules_forms_property_value_form_alter',
     ),
   );
   $actions['rules_forms_redirect'] = array(
@@ -216,16 +250,18 @@ function rules_forms_rules_action_info() {
  * Implements hook_rules_data_info().
  */
 function rules_forms_rules_data_info() {
-  $data_info = array();
+  // Base data types for form and form_states.
   $data_info['form'] = array(
     'label' => t('form'),
     'group' => t('Rules Forms'),
     'wrap' => TRUE,
+    'wrapper class' => 'RulesFormsFormWrapper',
   );
   $data_info['form_state'] = array(
     'label' => t('form state'),
     'group' => t('Rules Forms'),
     'wrap' => TRUE,
+    'wrapper class' => 'RulesFormsFormStateWrapper',
   );
 
   // Each active form has its own data type with unique property info
@@ -237,6 +273,7 @@ function rules_forms_rules_data_info() {
       'parent' => 'form',
       'property info' => $info['properties']['form'],
       'wrap' => TRUE,
+      'wrapper class' => 'RulesFormsFormWrapper',
     );
     $data_info[$form_id .'_state'] = array(
       'label' => t('@form state', array('@form' => $info['label'])),
@@ -244,19 +281,56 @@ function rules_forms_rules_data_info() {
       'parent' => 'form_state',
       'property info' => $info['properties']['form_state'],
       'wrap' => TRUE,
+      'wrapper class' => 'RulesFormsFormStateWrapper',
+    );
+  }
+
+  // Provide Rules data types for form elements and their attributes.
+  // Each form's property info is made up of form elements types that
+  // refer to these data types.
+  module_load_include('inc', 'rules_forms', 'includes/rules_forms.info');
+  $data_info['form_element'] = array(
+    'label' => t('form element'),
+    'group' => t('Rules Forms'),
+    'wrap' => TRUE,
+    'wrapper class' => 'RulesFormsElementWrapper',
+  );
+
+  foreach (_rules_forms_element_info() as $name => $label) {
+    $data_info['form_' . $name] = array(
+      'label' => $label,
+      'group' => t('Rules Forms'),
+      'parent' => 'form_element',
+      'wrap' => TRUE,
+      'wrapper class' => 'RulesFormsElementWrapper',
+      'creation callback' => 'rules_forms_create_element',
     );
   }
   return $data_info;
 }
 
 /**
+ * Creates a new form element from property info.
+ *
+ * @param array $values
+ *   The property values to set.
+ */
+function rules_forms_create_element($values = array()) {
+  return $values;
+}
+
+/**
  * Form alter callback for the data_set action.
  * This function was largely taken from Rules.
  */
-function rules_forms_attribute_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
+function rules_forms_property_value_form_alter(&$form, &$form_state, $options, RulesAbstractPlugin $element) {
   if (!empty($options['init']) && !isset($form_state['rules_element_step'])) {
     $form['negate']['#access'] = FALSE;
     unset($form['parameter']['value']);
+    // Make this callback useful for conditions that use a regex field.
+    if (isset($form['parameter']['regex'])) {
+      unset($form['parameter']['regex']);
+    }
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Continue'),
@@ -286,70 +360,33 @@ function rules_forms_attribute_value_form_alter(&$form, &$form_state, $options, 
 }
 
 /**
- * Validation callback for get attribute actions.
- */
-function rules_forms_attribute_get_validate(RulesAbstractPlugin $element) {
-  rules_forms_attribute_validate($element, 'get');
-}
-
-/**
  * Validation callback for set attribute actions.
  */
 function rules_forms_attribute_set_validate(RulesAbstractPlugin $element) {
-  rules_forms_attribute_validate($element, 'set');
-}
-
-/**
- * Validation callback for determining whether selected data
- * is a form element attribute.
- */
-function rules_forms_attribute_validate(RulesAbstractPlugin $element, $action) {
   $element->settings += array('data:select' => NULL);
   $info = $element->applyDataSelector($element->settings['data:select'])->info();
   if (strpos($element->settings['data:select'], ':') !== FALSE) {
-    // 'getter' or 'setter' callback.
-    if (empty($info[$action .'ter callback'])) {
-      throw new RulesIntegrityException(t('The selected data property doesn\'t support '. ($action == 'set' ? 'writing' : 'reading') .'.'), array($element, 'parameter', 'data'));
+    if (empty($info['setter callback'])) {
+      throw new RulesIntegrityException(t('The selected data property does not support reading.'));
     }
-    // Form element attributes should have the 'form type' value set.
-    elseif (empty($info['form type']) || $info['form type'] !== 'attribute') {
-      throw new RulesIntegrityException(t('The selected data property is not a form element attribute.', array($element, 'parameter', 'data')));
+    elseif (!isset($info['attribute info'])) {
+      throw new RulesIntegrityException(t('The selected data property is not a form element attribute.'));
     }
   }
 }
 
 /**
- * Validation callback for determining whether selected data
- * is a form element.
+ * Validation callback for get attribute actions.
  */
-function rules_forms_element_validate(RulesAbstractPlugin $element) {
+function rules_forms_attribute_get_validate(RulesAbstractPlugin $element) {
   $element->settings += array('data:select' => NULL);
   $info = $element->applyDataSelector($element->settings['data:select'])->info();
   if (strpos($element->settings['data:select'], ':') !== FALSE) {
     if (empty($info['getter callback'])) {
-      throw new RulesIntegrityException(t('The selected data property doesn\'t support reading.'), array($element, 'parameter', 'data'));
+      throw new RulesIntegrityException(t('The selected data property does not support reading.'));
     }
-    // Form element structures will have the 'form element' key set.
-    elseif ($info['type'] !== 'struct' || empty($info['form type']) || $info['form type'] !== 'element') {
-      throw new RulesIntegrityException(t('The selected data property is not a form element.', array($element, 'parameter', 'data')));
-    }
-  }
-}
-
-/**
- * Validation callback for determining whether selected data
- * is a form value.
- */
-function rules_forms_value_validate(RulesAbstractPlugin $element) {
-  $element->settings += array('data:select' => NULL);
-  $info = $element->applyDataSelector($element->settings['data:select'])->info();
-  if (strpos($element->settings['data:select'], ':') !== FALSE) {
-    if (empty($info['getter callback'])) {
-      throw new RulesIntegrityException(t('The selected data property doesn\'t support reading.'), array($element, 'parameter', 'data'));
-    }
-    // Form value attributes will have the 'form value' key set.
-    elseif (empty($info['form type']) || $info['form type'] !== 'value') {
-      throw new RulesIntegrityException(t('The selected data property is not a form value.', array($element, 'parameter', 'data')));
+    elseif (!isset($info['attribute info'])) {
+      throw new RulesIntegrityException(t('The selected data property is not a form element attribute.'));
     }
   }
 }
