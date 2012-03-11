@@ -7,27 +7,183 @@
 
 /**
  * Implements hook_rules_forms_element_info().
+ *
+ * Possible keys:
+ * - label: A human-readable label of the form element.
+ * - description (optional): A human-readable translated description.
+ * - properties: An array of property info as required by EntityMetadataWrapper.
+ *   This info should directly correspond to the element's possible attributes.
+ *   Additional keys in each individual property:
+ *   - attribute info: An array of information about the form element attribute.
+ *     - validate callback (optional): A callback for validating form data in the
+ *       set element attribute action.
+ *     - setter callback: A callback for setting data in the set element attribute action.
+ * - element info: An array of information describing the form element to Rules Forms.
+ *   - data type: The type of data the form element's value requires.
+ *   - keys: An array of key|value pairs describing keys to important attributes.
+ *     For example:
+ *     - value: The key to the value of the form element (if any).
+ *     - default_value: The key to the default value of the form element (if any).
+ *   - empty: An empty form element value.
  */
-function _rules_forms_element_info() {
-  return array(
-    'button' => t('Button'),
-    'checkbox' => t('Checkbox'),
-    'checkboxes' => t('Checkboxes'),
-    'fieldset' => t('Fieldset'),
-    'hidden' => t('Hidden'),
-    'item' => t('Item'),
-    'markup' => t('Markup'),
-    'radio' => t('Radio'),
-    'radios' => t('Radios'),
-    'select' => t('Select list'),
-    'submit' => t('Submit'),
-    'tableselect' => t('Table select list'),
-    'text_format' => t('Text format'),
-    'textarea' => t('Text area'),
-    'textfield' => t('Text field'),
-    'weight' => t('Weight'),
-    'value' => t('Value'),
+function rules_forms_rules_forms_element_info() {
+  $info['button'] = array(
+    'label' => t('Button'),
+    'properties' => rules_forms_element_properties('button'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value'),
+      'empty' => '',
+    ),
   );
+  $info['checkbox'] = array(
+    'label' => t('Checkbox'),
+    'properties' => rules_forms_element_properties('checkbox'),
+    'element info' => array(
+      'data type' => 'boolean',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => FALSE,
+    ),
+  );
+  $info['checkboxes'] = array(
+    'label' => t('Checkboxes'),
+    'properties' => rules_forms_element_properties('checkboxes'),
+    'element info' => array(
+      'data type' => 'struct',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => array(),
+    ),
+  );
+  $info['container'] = array(
+    'label' => t('Container'),
+    'properties' => rules_forms_element_properties('container'),
+    // The 'data type' FALSE indicates that this element is not settable.
+    'element info' => array('data type' => FALSE),
+  );
+  $info['fieldset'] = array(
+    'label' => t('Fieldset'),
+    'properties' => rules_forms_element_properties('fieldset'),
+    // The 'data type' FALSE indicates that this element is not settable.
+    'element info' => array('data type' => FALSE),
+  );
+  $info['hidden'] = array(
+    'label' => t('Hidden'),
+    'properties' => rules_forms_element_properties('hidden'),
+    'element info' => array(
+      'data type' => '*',
+      'keys' => array('value' => '#value'),
+      'empty' => NULL,
+    ),
+  );
+  $info['item'] = array(
+    'label' => t('Item'),
+    'properties' => rules_forms_element_properties('item'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#markup'),
+      'empty' => '',
+    ),
+  );
+  $info['markup'] = array(
+    'label' => t('Markup'),
+    'properties' => rules_forms_element_properties('markup'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#markup'),
+      'empty' => '',
+    ),
+  );
+  $info['radio'] = array(
+    'label' => t('Radio'),
+    'properties' => rules_forms_element_properties('radio'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => NULL,
+    ),
+  );
+  $info['radios'] = array(
+    'label' => t('Radios'),
+    'properties' => rules_forms_element_properties('radios'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => '',
+    ),
+  );
+  $info['select'] = array(
+    'label' => t('Select list'),
+    'properties' => rules_forms_element_properties('select'),
+    'element info' => array(
+      'data type' => 'text|struct',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => '',
+    ),
+  );
+  $info['submit'] = array(
+    'label' => t('Submit'),
+    'properties' => rules_forms_element_properties('submit'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value'),
+      'empty' => '',
+    ),
+  );
+  $info['tableselect'] = array(
+    'label' => t('Table select list'),
+    'properties' => rules_forms_element_properties('tableselect'),
+    'element info' => array(
+      'data type' => 'struct',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => array(),
+    ),
+  );
+  $info['text_format'] = array(
+    'label' => t('Text format'),
+    'properties' => rules_forms_element_properties('text_format'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => '',
+    ),
+  );
+  $info['textarea'] = array(
+    'label' => t('Text area'),
+    'properties' => rules_forms_element_properties('textarea'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => '',
+    ),
+  );
+  $info['textfield'] = array(
+    'label' => t('Text field'),
+    'properties' => rules_forms_element_properties('textfield'),
+    'element info' => array(
+      'data type' => 'text',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => '',
+    ),
+  );
+  $info['weight'] = array(
+    'label' => t('Weight'),
+    'properties' => rules_forms_element_properties('weight'),
+    'element info' => array(
+      'data type' => 'integer',
+      'keys' => array('value' => '#value', 'default_value' => '#default_value'),
+      'empty' => 0,
+    ),
+  );
+  $info['value'] = array(
+    'label' => t('Value'),
+    'properties' => rules_forms_element_properties('value'),
+    'element info' => array(
+      'data type' => '*',
+      'keys' => array('value' => '#value'),
+      'empty' => '',
+    ),
+  );
+  return $info;
 }
 
 /**
@@ -37,30 +193,47 @@ function _rules_forms_element_info() {
  *   The form element type. This is an element type defined in
  *   hook_rules_forms_element_info().
  */
-function _rules_forms_element_properties($element_type) {
-  // Allow modules to alter rules forms element attribute info.
-  $attribute_info = &drupal_static(__FUNCTION__);
-  if (!isset($attribute_info)) {
-    $attribute_info = _rules_forms_attribute_info();
-    drupal_alter('rules_forms_attribute_info', $attribute_info);
-  }
-
+function rules_forms_element_properties($element_type) {
+  $attribute_info = _rules_forms_attribute_info();
   $attributes = array();
   foreach ($attribute_info as $attribute => $info) {
     if ($info['attribute info']['elements'] == 'all' || in_array($element_type, $info['attribute info']['elements'])) {
-      $info += array(
-        'getter callback' => 'entity_property_verbatim_get',
-        'computed' => TRUE,
-        'attribute info' => array(),
-      );
-      $info['attribute info'] += array('read only' => FALSE);
-      if (empty($info['attribute info']['read only'])) {
-        $info += array('setter callback' => 'entity_property_verbatim_set');
-      }
-      $attributes[$attribute] = $info;
+      $attributes[$attribute] = _rules_forms_build_element_property($info);
     }
   }
   return $attributes;
+}
+
+/**
+ * Returns an array of element properties based on existing attributes.
+ */
+function rules_forms_filter_element_properties($element) {
+  $attribute_info = _rules_forms_attribute_info();
+  $attributes = array();
+  foreach (element_properties($element) as $attribute => $info) {
+    if (isset($attribute_info[$attribute])) {
+      $attributes[$attribute] = _rules_forms_build_element_property($info);
+    }
+  }
+  return $attributes;
+}
+
+/**
+ * Builds the property info of an individual property from an array of info.
+ */
+function _rules_forms_build_element_property(array $info) {
+  $info += array(
+    'getter callback' => 'entity_property_verbatim_get',
+    'computed' => TRUE,
+    'attribute info' => array(),
+  );
+  $info['attribute info'] += array('read only' => FALSE);
+  if (empty($info['attribute info']['read only'])) {
+    $info += array('setter callback' => 'entity_property_verbatim_set');
+  }
+  // Unset the 'elements' and 'read only' portions as those are not used in wrappers.
+  unset($info['attribute info']['elements'], $info['attribute info']['read only']);
+  return $info;
 }
 
 /**

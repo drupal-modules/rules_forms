@@ -6,7 +6,7 @@ class RulesFormsFormEvaluator {
 
   public function __construct() {
     module_load_include('inc', 'rules_forms', 'includes/rules_forms.info');
-    $this->elementInfo = _rules_forms_element_info();
+    $this->elementInfo = rules_forms_get_element_info();
   }
 
   /**
@@ -66,8 +66,9 @@ class RulesFormsFormEvaluator {
   protected function buildPropertyInfo($form, &$form_properties, &$form_state_properties, $tree = FALSE) {
     foreach (element_children($form) as $key) {
       if (isset($form[$key]['#type']) && array_key_exists($form[$key]['#type'], $this->elementInfo)) {
+        $info = $this->elementInfo[$form[$key]['#type']];
         $defaults = array(
-          'label' => isset($form[$key]['#title']) ? $this->elementInfo[$form[$key]['#type']] .': '. $form[$key]['#title'] : $this->elementInfo[$form[$key]['#type']],
+          'label' => isset($form[$key]['#title']) ? $info['label'] .': '. $form[$key]['#title'] : $info['label'],
           'computed' => TRUE,
           'auto creation' => 'rules_forms_create_structure',
           'getter callback' => 'entity_property_verbatim_get',
@@ -77,8 +78,11 @@ class RulesFormsFormEvaluator {
         $form_properties[$key] = $defaults + array(
           'type' => 'form_' . $form[$key]['#type'],
           'setter callback' => 'entity_property_verbatim_set',
-          'element info' => array('type' => $form[$key]['#type'], 'name' => isset($form[$key]['#parents']) ? implode('][', $form[$key]['#parents']) : $key),
-          'property info' => _rules_forms_element_properties($form[$key]['#type']),
+          'element info' => $info['element info'] + array(
+            'type' => $form[$key]['#type'],
+            'name' => isset($form[$key]['#parents']) ? implode('][', $form[$key]['#parents']) : $key,
+          ),
+          'property info' => $info['properties'],
         );
   
         $is_tree = ($tree == TRUE || !empty($form[$key]['#tree']));
@@ -95,31 +99,37 @@ class RulesFormsFormEvaluator {
           $form_state_properties[$key]['type'] = 'text';
           $form_state_arg = &$form_state_properties;
         }
+        $this->buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);
       }
       // Handle cases where an array is not necessarily a form element with a #type.
       // We just identify it as a 'struct' with no properties except the sub arrays.
-      else {
+      elseif (!isset($form[$key]['#type'])) {
         $defaults = array(
-          'type' => 'struct',
+          'type' => 'form_element',
           'label' => $key,
           'computed' => TRUE,
           'auto creation' => 'rules_forms_create_structure',
           'getter callback' => 'entity_property_verbatim_get',
-          'property info' => array(),
         );
+        // In this case, properties are filtered based on the attributes that are available.
         $form_properties[$key] = $defaults + array(
           'setter callback' => 'entity_property_verbatim_set',
+          'element info' => array(
+            'type' => NULL,
+            'name' => isset($form[$key]['#parents']) ? implode('][', $form[$key]['#parents']) : $key,
+            'data type' => FALSE,
+          ),
+          'property info' => rules_forms_filter_element_properties($form[$key]),
         );
         if ($tree) {
-          $form_state_properties[$key] = $defaults;
+          $form_state_properties[$key] = $defaults + array('property info' => array());
           $form_state_arg = &$form_state_properties[$key]['property info'];
         }
         else {
           $form_state_arg = &$form_state_properties;
         }
-        $is_tree = $tree;
+        $this->buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $tree);
       }
-      $this->buildPropertyInfo($form[$key], $form_properties[$key]['property info'], $form_state_arg, $is_tree);
     }
   }
 

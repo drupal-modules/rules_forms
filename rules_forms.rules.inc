@@ -294,11 +294,12 @@ function rules_forms_rules_data_info() {
     'group' => t('Rules Forms'),
     'wrap' => TRUE,
     'wrapper class' => 'RulesFormsElementWrapper',
+    'creation callback' => 'rules_forms_create_element',
   );
 
-  foreach (_rules_forms_element_info() as $name => $label) {
+  foreach (rules_forms_get_element_info() as $name => $info) {
     $data_info['form_' . $name] = array(
-      'label' => $label,
+      'label' => $info['label'],
       'group' => t('Rules Forms'),
       'parent' => 'form_element',
       'wrap' => TRUE,

@@ -326,3 +326,28 @@ function rules_forms_deactivate_form($form_id) {
     ->execute();
   return SAVED_DELETED;
 }
+
+/**
+ * Returns element info defined in hook_rules_forms_element_info().
+ */
+function rules_forms_get_element_info($name = NULL) {
+  $elements = &drupal_static(__FUNCTION__, array());
+  if (empty($elements)) {
+    if ($cache = rules_forms_get_cache('element_info')) {
+      $elements = $cache;
+    }
+    else {
+      foreach (module_invoke_all('rules_forms_element_info') as $key => $value) {
+        $value += array('element info' => array());
+        $value['element info'] += array('data type' => 'text');
+        $elements[$key] = $value;
+      }
+      drupal_alter('rules_forms_element_info', $elements);
+      rules_forms_set_cache('element_info', $elements);
+    }
+  }
+  if (isset($name) && isset($elements[$name])) {
+    return $elements[$name];
+  }
+  return $elements;
+}

@@ -14,7 +14,7 @@ function rules_forms_element_value_info_alter(&$element_info, $element) {
   if ($wrapper = $element->applyDataSelector($element->settings['data:select'])) {
     if ($wrapper instanceof RulesFormsElementWrapper) {
       $info = $wrapper->info();
-      $element_info['parameter']['value']['type'] = $wrapper->valueType();
+      $element_info['parameter']['value']['type'] = $wrapper->getElementDataType();
       $element_info['parameter']['value']['options list']  = !empty($info['options list']) ? 'rules_data_selector_options_list' : FALSE;
     }
   }
@@ -25,7 +25,7 @@ function rules_forms_element_value_info_alter(&$element_info, $element) {
  */
 function rules_forms_condition_element_value($wrapper, $value, $regex, $settings, $state, $element) {
   if ($wrapper instanceof RulesFormsElementWrapper) {
-    $element_value = isset($wrapper->value) ? $wrapper->value->value() : $wrapper->default_value->value();
+    $element_value = $wrapper->getElementValue();
     // Perform the comparison with a regular expression if necessary.
     if ($regex) {
       // Allow multiple regular expressions to be run, one on each line.
