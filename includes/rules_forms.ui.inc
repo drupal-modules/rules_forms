@@ -51,18 +51,19 @@ class RulesFormsDataElement extends RulesFormsDataUI {
    */
   private static $_attributes = array(
     'access' => 'all',
-    'changed' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
+    'changed' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'hidden'),
     'clicked' => array('button', 'submit'), // For Condition: button was clicked.
     'disabled' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'button', 'submit'),
-    'default' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
+    'default' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'hidden', 'field_collection'),
     'description' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'item'),
     'error' => 'all', // Allows an error to be set on any form element.
     'options' => array('select', 'checkboxes'),
-    'required' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
+    'required' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'field_collection', 'hidden'),
     'suffix' => 'all', // Note: This applies to prefix/suffix action.
-    'title' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'item'),
+    'title' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'item', 'field_collection'),
     'weight' => 'all',
-    'value' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select'),
+    'value' => array('textfield', 'textarea', 'checkbox', 'checkboxes', 'radio', 'radios', 'select', 'field_collection', 'hidden', 'date', 'date_combo'),
+    'duration' => array('date_combo', 'date'),
   );
 
   /**
@@ -112,7 +113,7 @@ class RulesFormsDataValue extends RulesFormsDataUI {
     $form = parent::defaultForm($name, $info, $settings, 'Value');
     if (!empty($element->settings['element'])) {
       $type = substr($element->settings['element'], 0, strpos($element->settings['element'], ':'));
-      if (in_array($type, array('checkboxes', 'radios', 'select', 'textfield'))) {
+      if (in_array($type, array('checkboxes', 'radios', 'select', 'textfield', 'hidden', 'date_combo'))) {
         $form[$name]['#type'] = 'textarea';
         $form[$name]['#title'] = 'Value(s)';
       }
