@@ -152,7 +152,7 @@ function rules_forms_equal_array_values($array1, $array2) {
 function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
   // We manually check the form to see if redirect is okay.
   // Setting $form_state['redirect'] has proven to be unreliable.
-  if (!empty($form_state['programmed']) || !empty($form_state['rebuild']) || !empty($form_state['no_redirect'])) {
+  if (!empty($form_state['programmed']) || !empty($form_state['no_redirect'])) {
     return;
   }
 
