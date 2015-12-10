@@ -27,7 +27,7 @@ class RulesFormsFormEvaluator {
           'type' => 'struct',
           'label' => 'values',
           'computed' => TRUE,
-          'getter callback' => 'rules_forms_get_attribute',
+          'getter callback' => 'entity_property_verbatim_get',
           'auto creation' => 'rules_forms_create_structure',
           'property info' => array(),
         ),
