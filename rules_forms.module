@@ -110,10 +110,10 @@ function rules_forms_event_build(&$form, &$form_state, $form_id, $entity, $entit
     $form_values = array();
     foreach ($form_info['elements'] as $element_id => $info) {
       $element = &_rules_forms_get_element($form, $element_id);
-      if (isset($element['#value'])) {
+      if (is_array($element) && isset($element['#value'])) {
         $form_values[$element_id] = $element['#value'];
       }
-      elseif (isset($element['#default_value'])) {
+      elseif (is_array($element) && isset($element['#default_value'])) {
         $form_values[$element_id] = $element['#default_value'];
       }
       else {
