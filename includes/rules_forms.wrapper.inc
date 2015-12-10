@@ -170,7 +170,8 @@ class RulesFormsElementWrapper extends RulesFormsStructureWrapper {
       throw new EntityMetadataWrapperException('Form element ' . check_plain($this->info['name']) . ' does not contain a value.');
     }
     $data = $this->value();
-    if ($value_key = $this->getElementKey('value') && isset($data[$value_key])) {
+    $value_key = $this->getElementKey('value');
+    if ($value_key && isset($data[$value_key])) {
       return $data[$value_key];
     }
     elseif ($default_value_key = $this->getElementKey('default_value') && isset($data[$default_value_key])) {
