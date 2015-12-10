@@ -284,12 +284,19 @@ function rules_forms_action_set_default($form, $element, $value) {
   $form_element = &_rules_forms_get_element($form, $element);
 
   // Try to determine if this is a multiple option element.
-  if (isset($form_element['#options']) && is_array($form_element['#options'])) {
-    $form_element['#default_value'] = explode("\r\n", $value);
+  if (isset($form_element['#type']) && isset($form_element['#options'])) {
+    switch ($form_element['#type']) {
+      case 'checkboxes':
+        $multiple = TRUE;
+        break;
+      case 'select':
+      case 'tableselect':
+        if (isset($form_element['#multiple']) && $form_element['#multiple']) {
+          $multiple = TRUE;
+        }
+    }
   }
-  else {
-    $form_element['#default_value'] = $value;
-  }
+  $form_element['#default_value'] = isset($multiple) ? explode("\r\n", $value) : $value;
 }
 
 /**
