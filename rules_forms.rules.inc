@@ -37,7 +37,7 @@ function rules_forms_rules_event_info() {
       'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
     );
 
-    if ($info['buttons'] && isset($info['submit'])) {
+    if (isset($info['buttons'], $info['submit'])) {
       foreach ($info['submit'] as $element_id => $label) {
         // Add button validate events.
         $events['rules_forms_'. $form_id .'_button_'. str_replace(':', '_', $element_id) .'_validate'] = $defaults + array(
