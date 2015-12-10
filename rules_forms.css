@@ -5,7 +5,7 @@
 
 a.rules-forms-inspection-link {
   display: inline-block;
-  background: transparent url(../../../../misc/help.png) left bottom no-repeat;
+  background: transparent url(/misc/help.png) left bottom no-repeat;
   background-size: 14px 14px;
   margin: 0 4px;
   width: 16px;
