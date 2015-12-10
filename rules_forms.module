@@ -441,6 +441,13 @@ function &_rules_forms_get_element(&$form, $element_id) {
   $element_id = substr($element_id, strpos($element_id, ':') + 1);
   $names = explode(':', $element_id);
   $element = &$form;
+
+  if (module_exists('field_group') && in_array('groups', array_values($names))) {
+    // We want to groups from the #groups property rather than normal fields.
+    $element =& $element['#groups'][end($names)];
+    return $element;
+  }
+
   foreach ($names as $name) {
     if (isset($element[$name])) {
       $element =& $element[$name];
