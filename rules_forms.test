@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @file
+ */
+
+/**
+ *
+ */
 class RulesFormsInterfaceTestCase extends DrupalWebTestCase {
 
   /**
@@ -59,7 +66,7 @@ class RulesFormsInterfaceTestCase extends DrupalWebTestCase {
     $edit = array();
     $edit['form_id_label'] = 'Article node form';
     $this->drupalPost('admin/config/workflow/rules/forms/article_node_form/activate/node%25252Fadd%25252Farticle', $edit, t('Activate'));
-    $this->assertText('article_node_form '. t('has been activated.'));
+    $this->assertText('article_node_form ' . t('has been activated.'));
 
     // Ensure that the newly activated form is shown in administration.
     $this->drupalGet(RULES_FORMS_ADMIN_PATH);
@@ -95,7 +102,7 @@ class RulesFormsInterfaceTestCase extends DrupalWebTestCase {
  * Base class for testing Rules Forms rules.
  */
 class RulesFormsRulesTestCase extends DrupalWebTestCase {
-  
+
   /**
    * Provides a user with permissions to administer rules forms.
    */
@@ -114,13 +121,16 @@ class RulesFormsRulesTestCase extends DrupalWebTestCase {
       '#title' => 'test title',
       '#default_value' => 'tset',
     ),
-    'body' => array(LANGUAGE_NONE => array(array(
-      'value' => array(
-        '#type' => 'textarea',
-        '#title' => 'test body',
-        '#default_value' => 'tset',
+    'body' => array(
+      LANGUAGE_NONE => array(array(
+        'value' => array(
+          '#type' => 'textarea',
+          '#title' => 'test body',
+          '#default_value' => 'tset',
+        ),
       ),
-    ))),
+      ),
+    ),
     'fieldset' => array(
       '#type' => 'fieldset',
       '#title' => 'test fieldset',
@@ -182,16 +192,16 @@ class RulesFormsRulesTestCase extends DrupalWebTestCase {
   public function setUp() {
     parent::setUp('rules_forms', 'rules');
     $this->privileged_user = $this->drupalCreateUser(array(
-        'administer nodes',
-        'access content',
-        'create article content',
-        'administer rules forms rules',
-        'administer rules forms',
-        'administer site configuration',
+      'administer nodes',
+      'access content',
+      'create article content',
+      'administer rules forms rules',
+      'administer rules forms',
+      'administer site configuration',
     ));
     $this->drupalLogin($this->privileged_user);
   }
-  
+
   /**
    * Enables form events for the node add form via the interface.
    */
@@ -225,7 +235,7 @@ class RulesFormsEventsTestCase extends RulesFormsRulesTestCase {
       'group' => 'Rules Forms',
     );
   }
-  
+
   /**
    * Enables modules and logs in the privileged user.
    */
@@ -542,7 +552,7 @@ class RulesFormsActionsTestCase extends RulesFormsRulesTestCase {
     $form = array();
     $form['test'] = array('#type' => 'textfield', '#options' => array('first' => 'tset'));
     $form = new ArrayObject($form);
-    $action = rules_action('rules_forms_set_options', array('element' => 'textfield:test', 'options' => 'first|test'. "\r\n" .'second|tset'));
+    $action = rules_action('rules_forms_set_options', array('element' => 'textfield:test', 'options' => 'first|test' . "\r\n" . 'second|tset'));
     $action->executeByArgs(array('form' => $form));
     $this->assertEqual($form['test']['#options'], array('first' => 'test', 'second' => 'tset'));
   }
@@ -745,7 +755,7 @@ class RulesFormsAPITestCase extends RulesFormsRulesTestCase {
       $this->assertTrue($_SESSION['rules_forms_form_values'][$form_id][$element_id] == 'tset');
     }
   }
-  
+
   /**
    * Tests rules_forms_event_submit().
    */
@@ -771,7 +781,7 @@ class RulesFormsAPITestCase extends RulesFormsRulesTestCase {
     $form_id = self::$_form['form_id']['#value'];
     $form_state = self::$_form_state;
     $form_state['triggering_element'] = array('#rules_forms_element_id' => 'fieldset:button:test');
-    
+
     // Ensure that the session variables are unset for the form.
     $_SESSION['rules_forms_form_values'][$form_id] = array('textfield:title' => 'tset', 'textarea:body:und:0:value' => 'tset');
     rules_forms_event_button_submit(self::$_form, $form_state);
