@@ -489,7 +489,7 @@ function rules_forms_element_form_alter(&$form, &$form_state, $options, RulesAbs
     // if it doesn't make sense for the type of field selected.
     if ($element->getElementName() == 'rules_forms_element_value') {
       $type = substr($element->settings['element'], 0, strpos($element->settings['element'], ':'));
-      if ($type != 'textfield' && $type != 'textarea') {
+      if ($type != 'textfield' && $type != 'textarea' && $type != 'hidden') {
         $form['parameter']['regex']['#access'] = FALSE;
         $form['parameter']['regex']['settings']['regex']['#type'] = 'value';
         $form['parameter']['regex']['settings']['regex']['#value'] = 0;

@@ -251,7 +251,8 @@ function rules_forms_after_build($form, &$form_state) {
   // Ensure that the form ID matches an activated form's form ID to prevent
   // improper Rules events from being loaded in hook_rules_event_info().
   if ($form_info !== FALSE && ((isset($form_info['reset']) && $form_info['reset'])
-      || (!isset($form_info['elements']) || empty($form_info['elements'])))) {
+      || (!isset($form_info['elements']) || empty($form_info['elements'])))
+  ) {
 
     if (!empty($form_info['reset'])) {
       $form_info['reset'] = FALSE;
