@@ -222,6 +222,11 @@ function rules_forms_action_set_access($form, $element, $access) {
   if (isset($form_element['#type'])) {
     $form_element['#access'] = $access == 0;
   }
+
+  // Hide a field group if we have set it to be hidden via rules.
+  if (isset($form_element['group_name']) && module_exists('field_group') && function_exists('field_group_hide_field_groups')) {
+    field_group_hide_field_groups($form, array($form_element['group_name']));
+  }
 }
 
 /**
