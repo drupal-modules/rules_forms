@@ -74,6 +74,10 @@ function rules_forms_event_variables() {
       'type' => 'text',
       'label' => t('Form ID'),
     ),
+    'entity' => array(
+      'type' => 'entity',
+      'label' => t('Entity if entity form.'),
+    ),
     'user' => array(
       'type' => 'user',
       'label' => t('Logged in user'),

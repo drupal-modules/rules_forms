@@ -72,7 +72,9 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
 
   if ($form_info !== FALSE) {
     // Set elements for form events.
-    rules_forms_event_build($form, $form_state, $form_id);
+    $entity_type = isset($form_state['entity_type']) ? $form_state['entity_type'] : NULL;
+    $entity = isset($entity_type) ? $form_state[$entity_type] : NULL;
+    rules_forms_event_build($form, $form_state, $form_id, $entity, $entity_type);
     $form['#validate'][] = 'rules_forms_event_validate';
     $form['#submit'][] = 'rules_forms_event_submit';
     $form['#after_build'][] = 'rules_forms_after_build';
@@ -99,7 +101,7 @@ function rules_forms_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Form build handler. Stores form values and invokes the event.
  */
-function rules_forms_event_build(&$form, &$form_state, $form_id) {
+function rules_forms_event_build(&$form, &$form_state, $form_id, $entity, $entity_type) {
   // Save form element values for use in conditions.
   $_SESSION['rules_forms_form_values'][$form_id] = array();
   $form_info = rules_forms_get_form_info($form_id);
@@ -122,7 +124,7 @@ function rules_forms_event_build(&$form, &$form_state, $form_id) {
     $_SESSION['rules_forms_form_values'][$form_id] = $form_values;
   }
   // Invoke the form_built event.
-  rules_forms_invoke_event('form_built', $form, $form_state, $form_id);
+  rules_forms_invoke_event('form_built', $form, $form_state, $form_id, $entity, $entity_type);
 }
 
 /**
@@ -131,7 +133,9 @@ function rules_forms_event_build(&$form, &$form_state, $form_id) {
  * @see rules_forms_form_alter()
  */
 function rules_forms_event_validate(&$form, &$form_state) {
-  rules_forms_invoke_event('form_validate', $form, $form_state);
+  $entity_type = isset($form_state['entity_type']) ? $form_state['entity_type'] : NULL;
+  $entity = isset($entity_type) ? $form_state[$entity_type] : NULL;
+  rules_forms_invoke_event('form_validate', $form, $form_state, $entity, $entity_type);
 }
 
 /**
@@ -145,7 +149,9 @@ function rules_forms_event_button_validate(&$form, &$form_state) {
     $form_info = rules_forms_get_form_info($form_id);
     $button = $form_state['triggering_element'];
     if (isset($button['#rules_forms_element_id']) && isset($form_info['submit'][$button['#rules_forms_element_id']])) {
-      rules_forms_invoke_event('button_' . str_replace(':', '_', $button['#rules_forms_element_id']) . '_validate', $form, $form_state, $form_id);
+      $entity_type = isset($form_state['entity_type']) ? $form_state['entity_type'] : NULL;
+      $entity = isset($entity_type) ? $form_state[$entity_type] : NULL;
+      rules_forms_invoke_event('button_'. str_replace(':', '_', $button['#rules_forms_element_id']) .'_validate', $form, $form_state, $form_id, $entity, $entity_type);
     }
   }
 }
@@ -156,7 +162,9 @@ function rules_forms_event_button_validate(&$form, &$form_state) {
  * @see rules_forms_form_alter()
  */
 function rules_forms_event_submit(&$form, &$form_state) {
-  rules_forms_invoke_event('form_submit', $form, $form_state);
+  $entity_type = isset($form_state['entity_type']) ? $form_state['entity_type'] : NULL;
+  $entity = isset($entity_type) ? $form_state[$entity_type] : NULL;
+  rules_forms_invoke_event('form_submit', $form, $form_state, $entity, $entity_type);
 }
 
 /**
@@ -172,7 +180,9 @@ function rules_forms_event_button_submit(&$form, &$form_state) {
     $form_info = rules_forms_get_form_info($form_id);
     $button = $form_state['triggering_element'];
     if (isset($button['#rules_forms_element_id']) && isset($form_info['submit'][$button['#rules_forms_element_id']])) {
-      rules_forms_invoke_event('button_' . str_replace(':', '_', $button['#rules_forms_element_id']) . '_submit', $form, $form_state, $form_id);
+      $entity_type = isset($form_state['entity_type']) ? $form_state['entity_type'] : NULL;
+      $entity = isset($entity_type) ? $form_state[$entity_type] : NULL;
+      rules_forms_invoke_event('button_'. str_replace(':', '_', $button['#rules_forms_element_id']) .'_submit', $form, $form_state, $form_id, $entity, $entity_type);
     }
   }
 }
@@ -199,7 +209,7 @@ function rules_forms_event_button_submit(&$form, &$form_state) {
  * @see rules_forms_event_submit()
  * @see rules_forms_form_alter()
  */
-function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = NULL) {
+function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = NULL, $entity = NULL, $entity_type = NULL) {
   global $user;
   if (empty($form_id)) {
     $form_id = $form['form_id']['#value'];
@@ -224,6 +234,7 @@ function rules_forms_invoke_event($event_type, &$form, &$form_state, $form_id = 
     $form_data,
     $form_state_data,
     $form_id,
+    entity_metadata_wrapper($entity_type, $entity),
     $user,
   ) + $elements;
 
