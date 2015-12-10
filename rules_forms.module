@@ -299,7 +299,7 @@ function rules_forms_build_elements($form, &$form_info, $parent = '') {
         $form_info['elements'][$element_id] = array(
           'type' => $form[$key]['#type'],
           'label' => $form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button'
-            ? $form[$key]['#value'] : ucfirst($form[$key]['#title']),
+            ? $form[$key]['#value'] : ($form[$key]['#title'] ? ucfirst($form[$key]['#title']) : $key),
         );
 
         // If this is a submit element, add it for use in adding button level validation and submission handlers.
