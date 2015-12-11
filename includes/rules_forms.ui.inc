@@ -75,8 +75,7 @@ class RulesFormsDataElement extends RulesFormsDataUI {
     // Get the type of attribute being set from the end of the element name.
     // The action name should directly correspond with the attribute it sets for this reason.
     $element_name = $element->getElementName();
-    $attributes = explode('_', $element_name);
-    $attribute = array_pop($attributes);
+    $attribute = end((explode('_', $element_name)));
 
     // Loop through each variable and retrieve the options that apply to this field type.
     foreach ($element->availableVariables() as $key => $value) {
