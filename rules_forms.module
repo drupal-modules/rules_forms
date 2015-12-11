@@ -273,7 +273,49 @@ function rules_forms_after_build($form, &$form_state) {
     $form_info['validate'] = array();
     $form_info['submit'] = array();
 
-    rules_forms_build_elements($form, $form_info);
+    if (isset($form['#entity']) && $entity = $form['#entity']) {
+
+      $entity_type = $entity->entityType();
+      $entity_info = entity_get_info($entity_type);
+      list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+
+      if ($entity_info['fieldable']) {
+        $fields = field_info_instances($entity_type, $bundle);
+
+        if (module_exists('field_collection')) {
+          // Loop through fields, grabbing field_collection ones, so we build a suitable form_info listing.
+          foreach ($fields as $k => $field) {
+            if (isset($field['widget'])) {
+              if ($field['widget']['module'] === 'field_collection') {
+                $t = 'field_collection';
+                $element_id = $t . ':' . $k;
+                $form_info['elements'][$element_id] = array(
+                  'type' => $t,
+                  'label' => $field['label'],
+                );
+              }
+            }
+
+            // @todo: Think about clearing out field_collections, but wait to see behaviours first.
+
+          }
+        }
+
+        if (module_exists('field_group') && function_exists('field_group_read_groups')) {
+          // Enabled groups returned only be default @see field_group_read_groups()
+          $groups = field_group_read_groups(['bundle' => $form['#bundle']]);
+
+        }
+
+        $elements = array_intersect(array_keys($fields), array_values(element_children($form)));
+        foreach ($elements as $e) {
+          rules_forms_build_elements($form[$e], $form_info, $e . ':');
+        }
+      }
+    } else {
+      rules_forms_build_elements($form, $form_info);
+    }
+
     rules_forms_save_form_info($form_id, $form_info);
     drupal_set_message(t('Form elements for %form have been built.', array('%form' => $form_info['label'])));
   }
@@ -463,8 +505,7 @@ function &_rules_forms_get_element(&$form, $element_id) {
 
   if (module_exists('field_group') && in_array('groups', array_values($names))) {
     // We want to groups from the #groups property rather than normal fields.
-    $element =& $element['#groups'][end($names)];
-    return $element;
+    return $element['#groups'][end($names)];
   }
 
   foreach ($names as $name) {
