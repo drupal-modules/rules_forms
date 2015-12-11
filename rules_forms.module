@@ -302,9 +302,17 @@ function rules_forms_after_build($form, &$form_state) {
 function rules_forms_build_elements($form, &$form_info, $parent = '') {
   foreach (element_children($form) as $key) {
     // Only save element that have a title or value and are not hidden or tokens.
-    if (isset($form[$key]['#type'])) {
-      if ((isset($form[$key]['#title']) && !in_array($form[$key]['#type'], array('hidden', 'token')))
+    if (array_key_exists('#type', $form[$key]) && !in_array($form[$key]['#type'], array('token')))
           || $form[$key]['#type'] == 'submit' || $form[$key]['#type'] == 'button') {
+      // Get type of element.
+      $type = $form[$key]['#type'];
+
+      // Prevents mass warnings being generated.
+      if ($type === 'container' || !array_key_exists('#title', $form[$key])) {
+        continue;
+      }
+
+
         $element_id = $form[$key]['#type'] .':'. $parent . $key;
 
         $form_info['elements'][$element_id] = array(
