@@ -252,13 +252,17 @@ function rules_forms_action_set_description($form, $element, $description) {
  */
 function rules_forms_action_set_access($form, $element, $access) {
   $form_element = &_rules_forms_get_element($form, $element);
-  if (isset($form_element['#type'])) {
-    $form_element['#access'] = $access == 0;
-  }
 
-  // Hide a field group if we have set it to be hidden via rules.
-  if (isset($form_element['group_name']) && module_exists('field_group') && function_exists('field_group_hide_field_groups')) {
-    field_group_hide_field_groups($form, array($form_element['group_name']));
+  if (is_array($form_element)) {
+    if (isset($form_element['#type'])) {
+      $form_element['#access'] = $access == 0;
+    }
+
+    // Hide a field group if we have set it to be hidden via rules.
+    if (isset($form_element['group_name']) && module_exists('field_group') && function_exists('field_group_hide_field_groups')) {
+      field_group_hide_field_groups($form, array($form_element['group_name']));
+    }
+
   }
 }
 
