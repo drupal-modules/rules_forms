@@ -40,15 +40,21 @@ function rules_forms_rules_event_info() {
     if (isset($info['buttons'], $info['submit'])) {
       foreach ($info['submit'] as $element_id => $label) {
         // Add button validate events.
-        $events['rules_forms_'. $form_id .'_button_'. str_replace(':', '_', $element_id) .'_validate'] = $defaults + array(
-          'label' => t('@form @button button is being validated', array('@form' => $info['label'], '@button' => strtolower($label))),
-          'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
-        );
+        $events['rules_forms_' . $form_id . '_button_' . str_replace(':', '_', $element_id) . '_validate'] = $defaults + array(
+            'label' => t('@form @button button is being validated', array(
+              '@form' => $info['label'],
+              '@button' => strtolower($label)
+            )),
+            'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
+          );
         // Add button submit events.
-        $events['rules_forms_'. $form_id .'_button_'. str_replace(':', '_', $element_id) .'_submit'] = $defaults + array(
-          'label' => t('@form @button button is being submitted', array('@form' => $info['label'], '@button' => strtolower($label))),
-          'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
-        );
+        $events['rules_forms_' . $form_id . '_button_' . str_replace(':', '_', $element_id) . '_submit'] = $defaults + array(
+            'label' => t('@form @button button is being submitted', array(
+              '@form' => $info['label'],
+              '@button' => strtolower($label)
+            )),
+            'variables' => rules_forms_event_variables() + rules_forms_element_variables($form_id),
+          );
       }
     }
   }
@@ -398,8 +404,16 @@ function rules_forms_rules_action_info() {
     'parameter' => array(
       'form_state' => array('type' => 'form_state', 'label' => t('Form state')),
       'path' => array('type' => 'text', 'label' => t('Path')),
-      'query' => array('type' => 'text', 'label' => t('Query'), 'optional' => TRUE),
-      'fragment' => array('type' => 'text', 'label' => t('Fragment'), 'optional' => TRUE),
+      'query' => array(
+        'type' => 'text',
+        'label' => t('Query'),
+        'optional' => TRUE
+      ),
+      'fragment' => array(
+        'type' => 'text',
+        'label' => t('Fragment'),
+        'optional' => TRUE
+      ),
     ),
     'base' => 'rules_forms_action_redirect',
     'access callback' => 'rules_forms_integration_access',
