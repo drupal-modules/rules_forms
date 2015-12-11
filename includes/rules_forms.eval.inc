@@ -203,7 +203,7 @@ function rules_forms_action_submit($form, $form_state) {
   // Copy top-level form values that are not for fields to entity properties,
   // without changing existing entity properties that are not being edited by
   // this form. Copying field values must be done using field_attach_submit().
-  $values_excluding_fields = $entity_info['fieldable'] ? array_diff_key($entity_values, field_info_instances($this->entityType, $bundle)) : $entity_values;
+  $values_excluding_fields = $entity_info['fieldable'] ? array_diff_key($entity_values, field_info_instances($entity_type, $bundle)) : $entity_values;
   foreach ($values_excluding_fields as $key => $value) {
     $entity->$key = $value;
   }
