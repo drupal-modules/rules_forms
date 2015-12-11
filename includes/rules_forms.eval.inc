@@ -26,10 +26,28 @@
  */
 function rules_forms_condition_element_value($form, $form_state, $element, $value, $regex) {
   $form_element = &_rules_forms_get_element($form, $element);
+  list(,$element_name,) = explode(':', $element);
+  $element_value = NULL;
 
   // Check the #value if it exists, then #default_value, or return FALSE.
   $attribute = isset($form_element['#value']) ? '#value' : '#default_value';
   if (!isset($form_element[$attribute])) {
+    // If the #value property is not set, check the form state.
+    if (isset($form_state['values']) && isset($form_state['values'][$element_name])) {
+      $element_value = $form_state['values'][$element_name];
+      // If the element is a field, then its form_state value
+      // will be in the format [language][delta][key].
+      while (is_array($element_value) && count($element_value) == 1) {
+        $element_value = reset($element_value);
+      }
+
+    }
+  }
+  else {
+    $element_value = $form_element[$attribute];
+  }
+
+  if (!isset($element_value)) {
     return FALSE;
   }
 
@@ -39,7 +57,7 @@ function rules_forms_condition_element_value($form, $form_state, $element, $valu
     // Return FALSE immediately if an expression fails.
     $lines = explode("\r\n", $value);
     foreach ($lines as $line) {
-      $result = preg_match($value, $form_element[$attribute]) == 1;
+      $result = preg_match($value, $element_value) == 1;
       if ($result === FALSE) {
         return FALSE;
       }
@@ -48,11 +66,11 @@ function rules_forms_condition_element_value($form, $form_state, $element, $valu
   }
 
   // Multiple values come in as array.
-  if (is_array($form_element[$attribute])) {
+  if (is_array($element_value)) {
     $lines = explode("\r\n", $value);
-    return rules_forms_equal_array_values($lines, $form_element[$attribute]);
+    return rules_forms_equal_array_values($lines, $element_value);
   }
-  return $form_element[$attribute] === $value;
+  return $element_value === $value;
 }
 
 /**
