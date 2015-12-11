@@ -143,8 +143,8 @@ function rules_forms_rules_condition_info() {
         'type' => 'boolean',
         'label' => t('Evaluate as regular expression'),
         'optional' => TRUE,
-        'description' => t('Perform the data comparison using the provided value as a regular expression. '.
-                           'To execute multiple regular expressions, enter one expression per line.'),
+        'description' => t('Perform the data comparison using the provided value as a regular expression. ' .
+          'To execute multiple regular expressions, enter one expression per line.'),
       ),
     ),
     'base' => 'rules_forms_condition_element_value',
@@ -379,7 +379,7 @@ function rules_forms_rules_action_info() {
   $actions['rules_forms_set_error'] = array(
     'label' => t('Set an error on the form'),
     'group' => 'Rules Forms',
-    'parameter' =>  array(
+    'parameter' => array(
       'form' => array('type' => 'form', 'label' => t('Form')),
       'element' => array(
         'type' => 'form_element',
