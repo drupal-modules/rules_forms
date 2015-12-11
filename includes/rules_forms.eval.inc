@@ -165,6 +165,39 @@ function rules_forms_action_redirect($form_state, $path, $query, $fragment) {
 }
 
 /**
+ * Action: Submit the form.
+ *
+ * @param ArrayObject $form
+ *   A reference to the form array of the form for which the event
+ *   was triggered.
+ * @param ArrayObject $form_state
+ *   A reference to the form state array of the form for which the
+ *   event was triggered.
+ */
+function rules_forms_action_submit($form, $form_state) {
+  $form_id = $form_state['build_info']['form_id'];
+  $entity = $form['#entity'] ?: $form_state['build_info']['args'][0];
+  $entity_type = $entity->entityType();
+  $entity_info = entity_get_info($entity_type);
+  $entity_values = drupal_array_get_nested_value($form_state['values'], $form['#parents']);
+  list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+
+  // Copy top-level form values that are not for fields to entity properties,
+  // without changing existing entity properties that are not being edited by
+  // this form. Copying field values must be done using field_attach_submit().
+  $values_excluding_fields = $info['fieldable'] ? array_diff_key($entity_values, field_info_instances($this->entityType, $bundle)) : $entity_values;
+  foreach ($values_excluding_fields as $key => $value) {
+    $entity->$key = $value;
+  }
+  if ($entity_info['fieldable']) {
+    field_attach_submit($entity_type, $entity, $form, $form_state);
+  }
+  $entity->created = isset($entity->is_new) ? REQUEST_TIME : $entity->created;
+  $entity->changed = REQUEST_TIME;
+  entity_save($entity_type, $entity);
+}
+
+/**
  * Action: Set the title of a form element.
  *
  * @param ArrayObject $form

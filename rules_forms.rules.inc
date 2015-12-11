@@ -405,6 +405,16 @@ function rules_forms_rules_action_info() {
     'access callback' => 'rules_forms_integration_access',
     'help' => t('Enter a Drupal path, path alias, or external URL to redirect to. Enter (optional) queries after "?" and (optional) anchor after "#".'),
   );
+  $actions['rules_forms_submit'] = array(
+    'label' => t('Submit the form'),
+    'group' => 'Rules Forms',
+    'parameter' => array(
+      'form' => array('type' => 'form', 'label' => t('Form')),
+      'form_state' => array('type' => 'form_state', 'label' => t('Form state')),
+    ),
+    'base' => 'rules_forms_action_submit',
+    'access callback' => 'rules_forms_integration_access',
+  );
   return $actions;
 }
 
