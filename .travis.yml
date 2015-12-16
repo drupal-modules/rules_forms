@@ -6,6 +6,13 @@ php:
 # - 7
 # - hhvm
 
+cache:
+  bundler: true
+  directories:
+    - $HOME/tmp/drush
+    - $HOME/.bundle
+  apt: true
+
 addons:
   hosts:
     - localhost
@@ -45,7 +52,8 @@ env:
     - DRUPAL_TI_ENVIRONMENT="drupal-7"
     - DRUPAL_TI_MODULE_NAME="rules_forms"
     - DRUPAL_TI_SIMPLETEST_GROUP="rules_forms"
-    - DRUPAL_TI_DB_URL="mysql://root:@127.0.0.1/drupal"
+    - DRUPAL_TI_DB="drupal"
+    - DRUPAL_TI_DB_URL="mysql://root:@127.0.0.1/$DRUPAL_TI_DB"
       # Simpletest specific commandline arguments, the DRUPAL_TI_SIMPLETEST_GROUP is appended at the end.
     - DRUPAL_TI_SIMPLETEST_ARGS="--verbose --color --concurrency 4 --url $URL"
       # PHPUnit specific commandline arguments.
@@ -59,21 +67,22 @@ env:
       # This needs to match your .coveralls.yml file.
     - DRUPAL_TI_COVERAGE_FILE="build/logs/clover.xml"
       # Debug options
-   #- DRUPAL_TI_DEBUG="-x -v"
+    - DRUPAL_TI_DEBUG="-x -v"
       # Set to "all" to output all files, set to e.g. "xvfb selenium" or "selenium",
       # etc. to only output those channels.
    #- DRUPAL_TI_DEBUG_FILE_OUTPUT="selenium xvfb webserver"
 
 
   matrix:
-    - DRUPAL_TI_RUNNERS="simpletest"
-    # DRUPAL_TI_RUNNERS="phpunit"
-    #- DRUPAL_TI_RUNNERS="behat"
-    #- DRUPAL_TI_RUNNERS="phpunit simpletest behat"
+   ## DRUPAL_TI configuration ##
+    - DRUPAL_TI_RUNNERS="simpletest" DB_URL="mysql://root:@localhost/drupal"
+   #- DRUPAL_TI_RUNNERS="phpunit"
+   #- DRUPAL_TI_RUNNERS="behat"
+   #- DRUPAL_TI_RUNNERS="phpunit simpletest behat"
 
-    # Use phpunit-core to test modules with phpunit with Drupal 8 core.
-    # Enable php-unit core again once we have working phpunit tests
-    - DRUPAL_TI_RUNNERS="phpunit-core"
+      # Use phpunit-core to test modules with phpunit with Drupal 8 core.
+      # Enable php-unit core again once we have working phpunit tests
+   #- DRUPAL_TI_RUNNERS="phpunit-core"
 
 mysql:
   database: drupal
@@ -82,17 +91,17 @@ mysql:
 
 before_install:
   - env
+ #- set -e # Fail build on first error.
   - gem install mailcatcher && mailcatcher -v
   - echo 'sendmail_path="/usr/bin/env catchmail"' | tee -a "$(php --ini | grep "Loaded Configuration" | awk '{print $4}')"
   - composer self-update
-  - composer global require -n --prefer-source drush/drush:dev-master drupal/coder lionsad/drupal_ti:1.*
+  - composer global require -n --no-interaction --prefer-source --dev drush/drush:dev-master drupal/coder lionsad/drupal_ti:1.*
   - phpcs --config-set installed_paths ~/.composer/vendor/drupal/coder/coder_sniffer
- #- drupal-ti before_install
- #- set -e # Fail build on first error.
+  - drupal-ti before_install
 
 install:
   - drupal-ti install
- #- $DRUSH -vy qd --no-server --watchdog --core=drupal-$CORE testsite
+ #- $DRUSH -vy qd --no-server --watchdog --core=drupal-$CORE --db-url $DB_URL testsite
  #- rsync -vuar "$TRAVIS_BUILD_DIR" "$ROOT"/sites/all/modules/contrib
  #- $DRUSH en $TEST_MODULE
  #- $DRUSH dis update
