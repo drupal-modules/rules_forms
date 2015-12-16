@@ -34,6 +34,13 @@ matrix:
 env:
   global:
     - URL="http://$HOSTNAME:8080/"
+
+    - ROOT="$HOME/build/drupal"
+    - DRUSH="drush -vy -l '$URL' -r '$ROOT'"
+    - COMPOSER_BIN_DIR=~/bin
+    - DB_URL="mysql://root:@localhost/drupal"
+    - PATH=${PATH//:\.\/node_modules\/\.bin/} # Fixes Travis bug: https://github.com/travis-ci/travis-ci/issues/4862
+
    ## DRUPAL_TI configuration ##
     - DRUPAL_TI_ENVIRONMENT="drupal-7"
     - DRUPAL_TI_MODULE_NAME="rules_forms"
@@ -58,12 +65,6 @@ env:
    #- DRUPAL_TI_DEBUG_FILE_OUTPUT="selenium xvfb webserver"
 
 
-    - ROOT="$HOME/build/drupal"
-    - DRUSH="drush -vy -l '$URL' -r '$ROOT'"
-    - COMPOSER_BIN_DIR=~/bin
-    - DB_URL="mysql://root:@localhost/drupal"
-    - PATH=${PATH//:\.\/node_modules\/\.bin/} # Fixes Travis bug: https://github.com/travis-ci/travis-ci/issues/4862
-
   matrix:
     - DRUPAL_TI_RUNNERS="simpletest"
     # DRUPAL_TI_RUNNERS="phpunit"
@@ -86,7 +87,7 @@ before_install:
   - composer self-update
   - composer global require -n --prefer-source drush/drush:dev-master drupal/coder lionsad/drupal_ti:1.*
   - phpcs --config-set installed_paths ~/.composer/vendor/drupal/coder/coder_sniffer
-  - drupal-ti before_install
+ #- drupal-ti before_install
  #- set -e # Fail build on first error.
 
 install:
